@@ -1,4 +1,4 @@
-export type AnalysisMode = 'flood' | 'surface_change';
+export type AnalysisMode = 'flood' | 'surface_change' | 'agriculture' | 'cryosphere' | 'deformation';
 
 export type ConfidenceLevel = 'High' | 'Moderate' | 'Low';
 export type ChangeIntensity = 'High' | 'Moderate' | 'Low' | 'Subtle';

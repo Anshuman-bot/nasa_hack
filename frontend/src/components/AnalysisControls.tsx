@@ -104,6 +104,9 @@ export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
               className="bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-electric-500 transition-colors cursor-pointer"
             >
               <option value="flood" className="bg-midnight-900 text-white">Flood Inundation (Specular Drop)</option>
+              <option value="agriculture" className="bg-midnight-900 text-white">Step 1: Agriculture (Biomass & Soil Saturation)</option>
+              <option value="cryosphere" className="bg-midnight-900 text-white">Step 2: Cryosphere (Glacier Retreat & Ice Velocity)</option>
+              <option value="deformation" className="bg-midnight-900 text-white">Step 3: Deformation (InSAR Seismic & Subsidence)</option>
               <option value="surface_change" className="bg-midnight-900 text-white">General Surface Disturbance</option>
             </select>
           </div>

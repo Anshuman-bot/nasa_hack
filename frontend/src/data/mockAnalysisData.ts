@@ -17,6 +17,27 @@ export const MONITORED_LOCATIONS: LocationOption[] = [
     defaultZoom: 11,
   },
   {
+    id: 'central_valley_ag',
+    name: 'San Joaquin Valley Agricultural Zone',
+    region: 'California, USA (Agriculture)',
+    coordinates: [36.75, -119.80],
+    defaultZoom: 10,
+  },
+  {
+    id: 'jakobshavn_cryo',
+    name: 'Jakobshavn Isbræ Glacial Catchment',
+    region: 'West Greenland (Cryosphere)',
+    coordinates: [69.17, -50.05],
+    defaultZoom: 9,
+  },
+  {
+    id: 'san_andreas_def',
+    name: 'San Andreas Fault Zone (Coachella)',
+    region: 'Southern California, USA (Deformation)',
+    coordinates: [33.72, -116.15],
+    defaultZoom: 10,
+  },
+  {
     id: 'mississippi',
     name: 'Lower Mississippi River Basin',
     region: 'Louisiana, USA',

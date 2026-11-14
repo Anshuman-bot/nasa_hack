@@ -186,8 +186,14 @@ class NISARPipelineService:
             )
             return self._tag_source(res, b_path, a_path)
 
-        # 4. Bundled demo scenarios
-        if 'mississippi' in loc_key:
+        # 4. Domain-specific and bundled scenarios
+        if 'agriculture' in loc_key or 'central_valley' in loc_key or request.analysisMode == 'agriculture':
+            return self._build_agriculture_scenario(request)
+        elif 'cryosphere' in loc_key or 'jakobshavn' in loc_key or 'greenland' in loc_key or request.analysisMode == 'cryosphere':
+            return self._build_cryosphere_scenario(request)
+        elif 'deformation' in loc_key or 'san_andreas' in loc_key or 'coachella' in loc_key or request.analysisMode == 'deformation':
+            return self._build_deformation_scenario(request)
+        elif 'mississippi' in loc_key:
             return self._build_mississippi_scenario(request)
         elif 'danube' in loc_key:
             return self._build_danube_scenario(request)
@@ -210,6 +216,294 @@ class NISARPipelineService:
         # baseline_nominal_days (~30d) gives ~1.0
         scale = 0.5 + 0.5 * (delta_days / baseline_nominal_days) ** 0.6
         return round(float(min(3.0, max(0.35, scale))), 3)
+
+    def _build_agriculture_scenario(self, request: AnalysisRequest) -> AnalysisResult:
+        scale = self._compute_date_scale_factor(request.beforeDate, request.afterDate, baseline_nominal_days=30.0)
+        base_area = 54.2
+        affected_area = round(base_area * scale, 1)
+        change_pct = round(min(98.0, 31.4 * (scale ** 0.8)), 1)
+        diff_db = round(3.8 * min(1.8, max(0.5, scale ** 0.5)), 1)  # positive backscatter increase due to crop canopy growth & soil moisture
+        after_db = round(-14.2 + diff_db, 1)
+
+        return AnalysisResult(
+            id="ts-nisar-ag-2026-041",
+            location="San Joaquin Valley Agricultural Zone",
+            locationCode="central_valley_ag",
+            centerCoordinates=(36.75, -119.80),
+            zoomLevel=10,
+            beforeDate=request.beforeDate,
+            afterDate=request.afterDate,
+            analysisMode=request.analysisMode,
+            changeType="Crop Biomass & Soil Saturation",
+            affectedAreaKm2=affected_area,
+            changePercent=change_pct,
+            confidence="High",
+            changeIntensity="High" if scale > 0.8 else "Moderate",
+            summary=(
+                f"NISAR L-band dual-polarization (HH/HV) and L3 Soil Moisture (SME2) analysis detects dynamic crop growth cycles, "
+                f"vegetation biomass volume scattering increases (+{diff_db} dB), and furrow irrigation soil saturation across {affected_area} km²."
+            ),
+            isDemoData=True,
+            scientificMetrics=ScientificMetrics(
+                beforeBackscatterDb=-14.2,
+                afterBackscatterDb=after_db,
+                differenceDb=diff_db,
+                thresholdDb=2.5,
+                classificationMethod="NISAR L-band Dual-Pol (HH/HV) Biomass Index & L3 Soil Moisture (SME2)",
+                polarization="HH / HV Dual-Pol",
+                sensorFrequency="1.25 GHz (L-band SAR)",
+                radarBand="L-band (24 cm wavelength)",
+            ),
+            timeline=[
+                TimelinePoint(id="ag-1", observationName="Emergence / Seedling", date=request.beforeDate, affectedAreaKm2=round(affected_area * 0.25, 1), baselineDiffPercent=0.0),
+                TimelinePoint(id="ag-2", observationName="Vegetative Canopy Growth", date="2026-05-15", affectedAreaKm2=round(affected_area * 0.55, 1), baselineDiffPercent=round(change_pct * 0.4, 1)),
+                TimelinePoint(id="ag-3", observationName="Peak Biomass / Heading", date="2026-06-02", affectedAreaKm2=round(affected_area * 0.85, 1), baselineDiffPercent=round(change_pct * 0.75, 1)),
+                TimelinePoint(id="ag-4", observationName="Ripening / Soil Saturation", date=request.afterDate, affectedAreaKm2=affected_area, baselineDiffPercent=change_pct),
+            ],
+            geoJson=GeoJsonFeatureCollection(
+                type="FeatureCollection",
+                features=[
+                    GeoJsonFeature(
+                        type="Feature",
+                        id="ag-poly-1",
+                        properties={
+                            "name": "Fresno High-Biomass Crop Cluster",
+                            "intensity": "high" if scale > 0.8 else "moderate",
+                            "areaKm2": round(affected_area * 0.6, 1),
+                            "backscatterDeltaDb": diff_db,
+                            "description": "Cross-polarization (HV) volume scattering elevation indicating dense orchard and alfalfa canopy development.",
+                        },
+                        geometry={
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [-119.92, 36.82],
+                                    [-119.70, 36.85],
+                                    [-119.65, 36.70],
+                                    [-119.88, 36.68],
+                                    [-119.92, 36.82],
+                                ]
+                            ],
+                        },
+                    ),
+                    GeoJsonFeature(
+                        type="Feature",
+                        id="ag-poly-2",
+                        properties={
+                            "name": "Tulare Basin Soil Saturation Furrows",
+                            "intensity": "moderate",
+                            "areaKm2": round(affected_area * 0.4, 1),
+                            "backscatterDeltaDb": round(diff_db * 0.7, 1),
+                            "description": "Dielectric constant increase from flood-and-drip agricultural irrigation detected via L-band penetration.",
+                        },
+                        geometry={
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [-119.80, 36.65],
+                                    [-119.62, 36.67],
+                                    [-119.60, 36.55],
+                                    [-119.78, 36.53],
+                                    [-119.80, 36.65],
+                                ]
+                            ],
+                        },
+                    ),
+                ],
+            ),
+        )
+
+    def _build_cryosphere_scenario(self, request: AnalysisRequest) -> AnalysisResult:
+        scale = self._compute_date_scale_factor(request.beforeDate, request.afterDate, baseline_nominal_days=24.0)
+        base_area = 78.6
+        affected_area = round(base_area * scale, 1)
+        change_pct = round(min(99.0, 28.2 * (scale ** 0.85)), 1)
+        diff_db = round(-6.8 * min(1.7, max(0.5, scale ** 0.5)), 1)  # backscatter drop from liquid water formation on ice / melt
+        after_db = round(-8.5 + diff_db, 1)
+
+        return AnalysisResult(
+            id="ts-nisar-cryo-2026-108",
+            location="Jakobshavn Isbræ Glacial Catchment",
+            locationCode="jakobshavn_cryo",
+            centerCoordinates=(69.17, -50.05),
+            zoomLevel=9,
+            beforeDate=request.beforeDate,
+            afterDate=request.afterDate,
+            analysisMode=request.analysisMode,
+            changeType="Glacial Terminus Retreat & Ice Melt",
+            affectedAreaKm2=affected_area,
+            changePercent=change_pct,
+            confidence="High",
+            changeIntensity="High" if scale > 0.85 else "Moderate",
+            summary=(
+                f"NISAR L-band SAR tracking measures {affected_area} km² of rapid glacial terminus retreat, "
+                f"surface melt onset, and ice stream discharge acceleration into Ilulissat Icefjord over the monitored interval."
+            ),
+            isDemoData=True,
+            scientificMetrics=ScientificMetrics(
+                beforeBackscatterDb=-8.5,
+                afterBackscatterDb=after_db,
+                differenceDb=diff_db,
+                thresholdDb=-4.0,
+                classificationMethod="NISAR Polarimetric Speckle Tracking & Dielectric Melt Detection",
+                polarization="HH Polarimetric",
+                sensorFrequency="1.25 GHz (L-band SAR)",
+                radarBand="L-band (24 cm wavelength)",
+            ),
+            timeline=[
+                TimelinePoint(id="cr-1", observationName="Solid Frozen Baseline", date=request.beforeDate, affectedAreaKm2=round(affected_area * 0.35, 1), baselineDiffPercent=0.0),
+                TimelinePoint(id="cr-2", observationName="Spring Terminus Fracturing", date="2026-05-18", affectedAreaKm2=round(affected_area * 0.55, 1), baselineDiffPercent=round(change_pct * 0.35, 1)),
+                TimelinePoint(id="cr-3", observationName="Supraglacial Melt Acceleration", date="2026-06-08", affectedAreaKm2=round(affected_area * 0.8, 1), baselineDiffPercent=round(change_pct * 0.7, 1)),
+                TimelinePoint(id="cr-4", observationName="Peak Calving Event", date=request.afterDate, affectedAreaKm2=affected_area, baselineDiffPercent=change_pct),
+            ],
+            geoJson=GeoJsonFeatureCollection(
+                type="FeatureCollection",
+                features=[
+                    GeoJsonFeature(
+                        type="Feature",
+                        id="cryo-poly-1",
+                        properties={
+                            "name": "Jakobshavn Terminus Calving Front",
+                            "intensity": "high",
+                            "areaKm2": round(affected_area * 0.55, 1),
+                            "backscatterDeltaDb": diff_db,
+                            "description": "Rapid seaward ice shelf detachment with high-velocity ice melange discharge.",
+                        },
+                        geometry={
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [-50.25, 69.22],
+                                    [-49.85, 69.25],
+                                    [-49.75, 69.12],
+                                    [-50.15, 69.10],
+                                    [-50.25, 69.22],
+                                ]
+                            ],
+                        },
+                    ),
+                    GeoJsonFeature(
+                        type="Feature",
+                        id="cryo-poly-2",
+                        properties={
+                            "name": "Upper Ice Sheet Supraglacial Melt Zone",
+                            "intensity": "moderate",
+                            "areaKm2": round(affected_area * 0.45, 1),
+                            "backscatterDeltaDb": round(diff_db * 0.75, 1),
+                            "description": "Severe dielectric absorption of L-band radar energy due to liquid water percolating through firn.",
+                        },
+                        geometry={
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [-49.70, 69.28],
+                                    [-49.30, 69.30],
+                                    [-49.25, 69.18],
+                                    [-49.65, 69.15],
+                                    [-49.70, 69.28],
+                                ]
+                            ],
+                        },
+                    ),
+                ],
+            ),
+        )
+
+    def _build_deformation_scenario(self, request: AnalysisRequest) -> AnalysisResult:
+        scale = self._compute_date_scale_factor(request.beforeDate, request.afterDate, baseline_nominal_days=36.0)
+        base_area = 62.4
+        affected_area = round(base_area * scale, 1)
+        change_pct = round(min(96.0, 24.5 * (scale ** 0.75)), 1)
+        diff_db = round(-4.6 * min(1.5, max(0.5, scale ** 0.5)), 1)
+        after_db = round(-12.8 + diff_db, 1)
+
+        return AnalysisResult(
+            id="ts-nisar-def-2026-302",
+            location="San Andreas Fault Zone (Coachella)",
+            locationCode="san_andreas_def",
+            centerCoordinates=(33.72, -116.15),
+            zoomLevel=10,
+            beforeDate=request.beforeDate,
+            afterDate=request.afterDate,
+            analysisMode=request.analysisMode,
+            changeType="Seismic Slip & Ground Subsidence",
+            affectedAreaKm2=affected_area,
+            changePercent=change_pct,
+            confidence="High",
+            changeIntensity="High" if scale > 0.8 else "Moderate",
+            summary=(
+                f"NISAR L-band InSAR GUNW (Geocoded Unwrapped Interferogram) analysis reveals {affected_area} km² of "
+                f"aseismic fault creep, line-of-sight surface displacement (~2.4 cm), and aquifer-compaction subsidence."
+            ),
+            isDemoData=True,
+            scientificMetrics=ScientificMetrics(
+                beforeBackscatterDb=-12.8,
+                afterBackscatterDb=after_db,
+                differenceDb=diff_db,
+                thresholdDb=-3.5,
+                classificationMethod="NISAR InSAR Phase Decorrelation & GUNW Differential Interferometry",
+                polarization="HH Polarimetric InSAR",
+                sensorFrequency="1.25 GHz (L-band SAR)",
+                radarBand="L-band (24 cm wavelength)",
+            ),
+            timeline=[
+                TimelinePoint(id="def-1", observationName="InSAR Master Acquisition", date=request.beforeDate, affectedAreaKm2=round(affected_area * 0.3, 1), baselineDiffPercent=0.0),
+                TimelinePoint(id="def-2", observationName="12-Day Repeat Orbit 1", date="2026-05-18", affectedAreaKm2=round(affected_area * 0.5, 1), baselineDiffPercent=round(change_pct * 0.35, 1)),
+                TimelinePoint(id="def-3", observationName="12-Day Repeat Orbit 2", date="2026-06-02", affectedAreaKm2=round(affected_area * 0.75, 1), baselineDiffPercent=round(change_pct * 0.7, 1)),
+                TimelinePoint(id="def-4", observationName="InSAR Slave / Differential Pair", date=request.afterDate, affectedAreaKm2=affected_area, baselineDiffPercent=change_pct),
+            ],
+            geoJson=GeoJsonFeatureCollection(
+                type="FeatureCollection",
+                features=[
+                    GeoJsonFeature(
+                        type="Feature",
+                        id="def-poly-1",
+                        properties={
+                            "name": "Coachella Valley Aseismic Fault Creep",
+                            "intensity": "high",
+                            "areaKm2": round(affected_area * 0.65, 1),
+                            "backscatterDeltaDb": diff_db,
+                            "description": "Differential interferometric fringe pattern indicating tectonic slip across the San Andreas plate boundary.",
+                        },
+                        geometry={
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [-116.35, 33.85],
+                                    [-116.05, 33.78],
+                                    [-115.95, 33.62],
+                                    [-116.25, 33.68],
+                                    [-116.35, 33.85],
+                                ]
+                            ],
+                        },
+                    ),
+                    GeoJsonFeature(
+                        type="Feature",
+                        id="def-poly-2",
+                        properties={
+                            "name": "Palm Desert Groundwater Basin Subsidence",
+                            "intensity": "moderate",
+                            "areaKm2": round(affected_area * 0.35, 1),
+                            "backscatterDeltaDb": round(diff_db * 0.7, 1),
+                            "description": "Gradual compaction of unconsolidated aquifer sediment captured by InSAR phase coherence analysis.",
+                        },
+                        geometry={
+                            "type": "Polygon",
+                            "coordinates": [
+                                [
+                                    [-116.42, 33.74],
+                                    [-116.30, 33.76],
+                                    [-116.28, 33.66],
+                                    [-116.40, 33.64],
+                                    [-116.42, 33.74],
+                                ]
+                            ],
+                        },
+                    ),
+                ],
+            ),
+        )
 
     def _build_brahmaputra_scenario(self, request: AnalysisRequest) -> AnalysisResult:
         change_type = "Possible Flooding" if request.analysisMode == "flood" else "Candidate Surface Change"

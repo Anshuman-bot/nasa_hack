@@ -1,7 +1,7 @@
 from typing import List, Literal, Tuple, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
-AnalysisMode = Literal['flood', 'surface_change']
+AnalysisMode = Literal['flood', 'surface_change', 'agriculture', 'cryosphere', 'deformation']
 ConfidenceLevel = Literal['High', 'Moderate', 'Low']
 ChangeIntensity = Literal['High', 'Moderate', 'Low', 'Subtle']
 DataSource = Literal['DEMO', 'SYNTHETIC', 'REAL_NISAR']
@@ -46,7 +46,7 @@ class AnalysisRequest(BaseModel):
     location: str = Field(..., description="Target region identifier (e.g. 'brahmaputra', 'mississippi', 'danube', or custom)")
     beforeDate: str = Field(..., description="Pre-event baseline observation date (YYYY-MM-DD)")
     afterDate: str = Field(..., description="Post-event observation date (YYYY-MM-DD)")
-    analysisMode: AnalysisMode = Field('flood', description="Analysis mode: 'flood' or 'surface_change'")
+    analysisMode: AnalysisMode = Field('flood', description="Analysis mode: 'flood', 'surface_change', 'agriculture', 'cryosphere', or 'deformation'")
     beforeRasterPath: Optional[str] = Field(None, description="Optional path to local pre-event GeoTIFF/HDF5 raster file")
     afterRasterPath: Optional[str] = Field(None, description="Optional path to local post-event GeoTIFF/HDF5 raster file")
     thresholdDb: Optional[float] = Field(4.5, description="Backscatter difference threshold in dB (default: 4.5 dB)")

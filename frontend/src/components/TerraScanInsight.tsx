@@ -12,10 +12,16 @@ export const TerraScanInsight: React.FC<TerraScanInsightProps> = ({ data }) => {
       return data.summary;
     }
 
-    const modeText =
-      data.analysisMode === 'flood'
-        ? 'inundation and surface water expansion'
-        : 'surface roughness and moisture variation';
+    let modeText = 'surface roughness and moisture variation';
+    if (data.analysisMode === 'flood') {
+      modeText = 'inundation and surface water expansion';
+    } else if (data.analysisMode === 'agriculture') {
+      modeText = 'crop growth phenology, soil saturation, and vegetation biomass variation';
+    } else if (data.analysisMode === 'cryosphere') {
+      modeText = 'glacial terminus retreat, ice sheet velocity flow, and seasonal melt';
+    } else if (data.analysisMode === 'deformation') {
+      modeText = 'interferometric phase correlation, seismic slip, and ground subsidence';
+    }
 
     const deltaSign = data.changePercent >= 0 ? `+${data.changePercent.toFixed(1)}%` : `${data.changePercent.toFixed(1)}%`;
 
