@@ -17,7 +17,8 @@ import {
   Mountain, 
   Zap, 
   CheckCircle2, 
-  Layers
+  Layers,
+  Mail
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -348,9 +349,117 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
         </div>
       </section>
 
+      {/* CONTACT & TEAM SECTION */}
+      <section id="contact" className="py-24 border-t border-white/5 relative bg-gradient-to-b from-black to-slate-950/60 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-electric-500/10 border border-electric-500/20 text-electric-400 text-xs font-mono uppercase tracking-wider mb-4">
+              Get in Touch &bull; Project Team
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+              Connect With Us
+            </h2>
+            <p className="text-sm text-slate-400 mt-3 leading-relaxed">
+              NASA Space Apps Challenge 2026 — <em>Dancing with the SARs</em>. Reach out to the core engineering and research team behind TerraScan.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {/* Team Leader Card */}
+            <div className="p-6 rounded-2xl bg-white/[0.03] border border-electric-500/40 relative overflow-hidden group hover:border-electric-500/70 transition-all flex flex-col justify-between shadow-lg shadow-electric-950/20">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-electric-500/10 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none"></div>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-electric-500/20 text-electric-300 border border-electric-500/40 font-semibold">
+                    TEAM LEADER
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-white tracking-tight">Inzmam</h3>
+                <p className="text-xs text-slate-400 mt-1">Lead Architecture &amp; Engineering</p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <a
+                  href="mailto:modh.inzmam007@gmail.com"
+                  className="text-xs font-mono text-electric-400 hover:text-electric-300 break-all transition-colors flex items-center gap-1.5"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  <span>modh.inzmam007@gmail.com</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Member 1: Anshuman */}
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
+                    TEAM MEMBER
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-white tracking-tight">Anshuman</h3>
+                <p className="text-xs text-slate-400 mt-1">Radar Analytics &amp; Pipeline</p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <a
+                  href="mailto:iganshumanig@gmail.com"
+                  className="text-xs font-mono text-slate-300 group-hover:text-acid-400 break-all transition-colors flex items-center gap-1.5"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-acid-400" />
+                  <span>iganshumanig@gmail.com</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Member 2: Dhanistha Nanda */}
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
+                    TEAM MEMBER
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-white tracking-tight">Dhanistha Nanda</h3>
+                <p className="text-xs text-slate-400 mt-1">Research &amp; SAR Applications</p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <a
+                  href="mailto:dhanistha.nanda@gmail.com"
+                  className="text-xs font-mono text-slate-300 group-hover:text-acid-400 break-all transition-colors flex items-center gap-1.5"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-acid-400" />
+                  <span>dhanistha.nanda@gmail.com</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Member 3: Anishka Yadav */}
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
+                    TEAM MEMBER
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-white tracking-tight">Anishka Yadav</h3>
+                <p className="text-xs text-slate-400 mt-1">Geospatial UI &amp; Data Integration</p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <a
+                  href="mailto:anishkayadav2808@gmail.com"
+                  className="text-xs font-mono text-slate-300 group-hover:text-acid-400 break-all transition-colors flex items-center gap-1.5"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-acid-400" />
+                  <span>anishkayadav2808@gmail.com</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER (Minimalist, human-built aesthetic) */}
       <footer className="py-12 border-t border-white/10 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-slate-400">
               <span className="font-semibold text-white">TerraScan</span>
@@ -362,21 +471,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
               <span>Free Local Stack</span>
               <span>No Paid APIs</span>
               <span>100% Deterministic Engine</span>
-            </div>
-          </div>
-
-          <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[11px] text-slate-400">
-            <div>
-              <span className="text-slate-500 font-mono uppercase tracking-wider block mb-1">Team Leader:</span>
-              <span className="text-white font-medium">Inzmam</span> (<a href="mailto:modh.inzmam007@gmail.com" className="text-electric-400 hover:underline">modh.inzmam007@gmail.com</a>)
-            </div>
-            <div>
-              <span className="text-slate-500 font-mono uppercase tracking-wider block mb-1">Team Members:</span>
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                <span>Anshuman (<a href="mailto:iganshumanig@gmail.com" className="text-slate-300 hover:text-white hover:underline">iganshumanig@gmail.com</a>)</span>
-                <span>Dhanistha Nanda (<a href="mailto:dhanistha.nanda@gmail.com" className="text-slate-300 hover:text-white hover:underline">dhanistha.nanda@gmail.com</a>)</span>
-                <span>Anishka Yadav (<a href="mailto:anishkayadav2808@gmail.com" className="text-slate-300 hover:text-white hover:underline">anishkayadav2808@gmail.com</a>)</span>
-              </div>
             </div>
           </div>
         </div>

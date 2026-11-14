@@ -97,9 +97,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           </a>
 
           <a
-            href="https://www.spaceappschallenge.org/"
-            target="_blank"
-            rel="noreferrer"
+            href="#contact"
+            onClick={(e) => {
+              if (currentPage !== 'landing') {
+                e.preventDefault();
+                onNavigate('landing');
+                setTimeout(() => {
+                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }
+            }}
             className="text-slate-400 hover:text-slate-200 py-2 transition-colors"
           >
             Contact
