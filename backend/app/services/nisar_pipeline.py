@@ -13,6 +13,7 @@ NISAR GCOV Data -> Raster Loader -> Preprocessing -> Image Alignment
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 import os
+from datetime import datetime
 import numpy as np
 from ..models.analysis import (
     AnalysisRequest,
@@ -193,8 +194,37 @@ class NISARPipelineService:
         else:
             return self._build_brahmaputra_scenario(request)
 
+    def _compute_date_scale_factor(self, before_date_str: str, after_date_str: str, baseline_nominal_days: float = 30.0) -> float:
+        """
+        Dynamically scale simulated radar change response based on the elapsed days
+        between before_date and after_date, reflecting SAR temporal decorrelation and hydrological accumulation.
+        """
+        try:
+            d_before = datetime.strptime(before_date_str[:10], "%Y-%m-%d")
+            d_after = datetime.strptime(after_date_str[:10], "%Y-%m-%d")
+            delta_days = max(1, (d_after - d_before).days)
+        except Exception:
+            delta_days = int(baseline_nominal_days)
+
+        # Smooth non-linear factor: 12-day repeat orbit minimum to seasonal saturation
+        # baseline_nominal_days (~30d) gives ~1.0
+        scale = 0.5 + 0.5 * (delta_days / baseline_nominal_days) ** 0.6
+        return round(float(min(3.0, max(0.35, scale))), 3)
+
     def _build_brahmaputra_scenario(self, request: AnalysisRequest) -> AnalysisResult:
         change_type = "Possible Flooding" if request.analysisMode == "flood" else "Candidate Surface Change"
+        scale = self._compute_date_scale_factor(request.beforeDate, request.afterDate, baseline_nominal_days=48.0)
+
+        base_area = 38.4
+        affected_area = round(base_area * scale, 1)
+        change_pct = round(min(95.0, 21.7 * (scale ** 0.8)), 1)
+        diff_db = round(-7.5 * min(1.6, max(0.5, scale ** 0.5)), 1)
+        after_db = round(-11.2 + diff_db, 1)
+
+        area_p1 = round(18.2 * scale, 1)
+        area_p2 = round(13.7 * scale, 1)
+        area_p3 = round(max(1.0, affected_area - area_p1 - area_p2), 1)
+
         return AnalysisResult(
             id="ts-nisar-2026-0841",
             location="Brahmaputra River Corridor",
@@ -205,20 +235,21 @@ class NISARPipelineService:
             afterDate=request.afterDate,
             analysisMode=request.analysisMode,
             changeType=change_type,
-            affectedAreaKm2=38.4,
-            changePercent=21.7,
-            confidence="High",
-            changeIntensity="High",
+            affectedAreaKm2=affected_area,
+            changePercent=change_pct,
+            confidence="High" if scale > 0.7 else "Moderate",
+            changeIntensity="High" if scale > 0.9 else ("Moderate" if scale > 0.5 else "Low"),
             summary=(
-                "Radar observations indicate substantial surface change concentrated around low-lying "
-                "areas near the monitored river corridor. Approximately 38.4 km² has been flagged as "
-                "possible newly inundated terrain."
+                f"Radar observations indicate substantial surface change concentrated around low-lying "
+                f"areas near the monitored river corridor over the {(datetime.strptime(request.afterDate[:10], '%Y-%m-%d') - datetime.strptime(request.beforeDate[:10], '%Y-%m-%d')).days if ('-' in request.beforeDate and '-' in request.afterDate) else 30}-day observation interval. "
+                f"Approximately {affected_area} km² ({change_pct}% baseline variation) has been flagged as "
+                f"candidate surface change."
             ),
             isDemoData=True,
             scientificMetrics=ScientificMetrics(
                 beforeBackscatterDb=-11.2,
-                afterBackscatterDb=-18.7,
-                differenceDb=-7.5,
+                afterBackscatterDb=after_db,
+                differenceDb=diff_db,
                 thresholdDb=-4.5,
                 classificationMethod="NISAR L-band GCOV Relative Amplitude Thresholding",
                 polarization="HH / HV Dual-Pol",
@@ -226,10 +257,10 @@ class NISARPipelineService:
                 radarBand="L-band (24 cm wavelength)",
             ),
             timeline=[
-                TimelinePoint(id="obs-1", observationName="Observation 1", date="2026-04-18", affectedAreaKm2=12.1, baselineDiffPercent=0.0),
-                TimelinePoint(id="obs-2", observationName="Observation 2", date="2026-05-12", affectedAreaKm2=15.3, baselineDiffPercent=4.2),
-                TimelinePoint(id="obs-3", observationName="Observation 3", date="2026-06-05", affectedAreaKm2=27.8, baselineDiffPercent=14.6),
-                TimelinePoint(id="obs-4", observationName="Observation 4", date=request.afterDate, affectedAreaKm2=38.4, baselineDiffPercent=21.7),
+                TimelinePoint(id="obs-1", observationName="Pre-Event Baseline", date=request.beforeDate, affectedAreaKm2=round(affected_area * 0.3, 1), baselineDiffPercent=0.0),
+                TimelinePoint(id="obs-2", observationName="Intermediate Pass 1", date="2026-05-12", affectedAreaKm2=round(affected_area * 0.45, 1), baselineDiffPercent=round(change_pct * 0.3, 1)),
+                TimelinePoint(id="obs-3", observationName="Intermediate Pass 2", date="2026-06-05", affectedAreaKm2=round(affected_area * 0.75, 1), baselineDiffPercent=round(change_pct * 0.7, 1)),
+                TimelinePoint(id="obs-4", observationName="Post-Event Analysis", date=request.afterDate, affectedAreaKm2=affected_area, baselineDiffPercent=change_pct),
             ],
             geoJson=GeoJsonFeatureCollection(
                 type="FeatureCollection",
@@ -239,9 +270,9 @@ class NISARPipelineService:
                         id="poly-1",
                         properties={
                             "name": "North Embankment Overflow Zone",
-                            "intensity": "high",
-                            "areaKm2": 18.2,
-                            "backscatterDeltaDb": -8.4,
+                            "intensity": "high" if scale > 0.8 else "moderate",
+                            "areaKm2": area_p1,
+                            "backscatterDeltaDb": round(diff_db * 1.1, 1),
                             "description": "Pronounced decrease in specular backscatter; indicative of standing water over formerly bare soil.",
                         },
                         geometry={
@@ -264,8 +295,8 @@ class NISARPipelineService:
                         properties={
                             "name": "Southern Agricultural Lowland Inundation",
                             "intensity": "moderate",
-                            "areaKm2": 13.7,
-                            "backscatterDeltaDb": -5.6,
+                            "areaKm2": area_p2,
+                            "backscatterDeltaDb": round(diff_db * 0.8, 1),
                             "description": "Moderate backscatter attenuation across seasonal floodplains and saturated paddy fields.",
                         },
                         geometry={
@@ -288,8 +319,8 @@ class NISARPipelineService:
                         properties={
                             "name": "Riparian Buffer Saturation Corridor",
                             "intensity": "low",
-                            "areaKm2": 6.5,
-                            "backscatterDeltaDb": -4.8,
+                            "areaKm2": area_p3,
+                            "backscatterDeltaDb": round(diff_db * 0.6, 1),
                             "description": "Subtle moisture increase detected along river sandbars and peripheral wetland fringes.",
                         },
                         geometry={
@@ -311,6 +342,14 @@ class NISARPipelineService:
 
     def _build_mississippi_scenario(self, request: AnalysisRequest) -> AnalysisResult:
         change_type = "Possible Flooding" if request.analysisMode == "flood" else "Candidate Surface Saturation"
+        scale = self._compute_date_scale_factor(request.beforeDate, request.afterDate, baseline_nominal_days=45.0)
+
+        base_area = 44.2
+        affected_area = round(base_area * scale, 1)
+        change_pct = round(min(95.0, 18.5 * (scale ** 0.8)), 1)
+        diff_db = round(-6.2 * min(1.6, max(0.5, scale ** 0.5)), 1)
+        after_db = round(-13.0 + diff_db, 1)
+
         return AnalysisResult(
             id="ts-nisar-2026-0912",
             location="Lower Mississippi River Basin",
@@ -321,19 +360,19 @@ class NISARPipelineService:
             afterDate=request.afterDate,
             analysisMode=request.analysisMode,
             changeType=change_type,
-            affectedAreaKm2=44.2,
-            changePercent=18.5,
+            affectedAreaKm2=affected_area,
+            changePercent=change_pct,
             confidence="Moderate",
-            changeIntensity="Moderate",
+            changeIntensity="High" if scale > 0.9 else ("Moderate" if scale > 0.5 else "Low"),
             summary=(
-                "Radar observations indicate candidate surface change and moisture accumulation along low-gradient "
-                "backswamps and tributary junctions. Approximately 44.2 km² flagged as candidate saturated terrain."
+                f"Radar observations indicate candidate surface change and moisture accumulation along low-gradient "
+                f"backswamps and tributary junctions. Approximately {affected_area} km² flagged as candidate saturated terrain."
             ),
             isDemoData=True,
             scientificMetrics=ScientificMetrics(
                 beforeBackscatterDb=-13.0,
-                afterBackscatterDb=-19.2,
-                differenceDb=-6.2,
+                afterBackscatterDb=after_db,
+                differenceDb=diff_db,
                 thresholdDb=-4.5,
                 classificationMethod="NISAR L-band GCOV Difference Thresholding",
                 polarization="HH / HV Dual-Pol",
@@ -341,10 +380,10 @@ class NISARPipelineService:
                 radarBand="L-band (24 cm wavelength)",
             ),
             timeline=[
-                TimelinePoint(id="m-1", observationName="Observation 1", date="2026-04-15", affectedAreaKm2=18.4, baselineDiffPercent=0.0),
-                TimelinePoint(id="m-2", observationName="Observation 2", date="2026-05-10", affectedAreaKm2=22.1, baselineDiffPercent=3.7),
-                TimelinePoint(id="m-3", observationName="Observation 3", date="2026-06-01", affectedAreaKm2=33.6, baselineDiffPercent=11.2),
-                TimelinePoint(id="m-4", observationName="Observation 4", date=request.afterDate, affectedAreaKm2=44.2, baselineDiffPercent=18.5),
+                TimelinePoint(id="m-1", observationName="Pre-Event Baseline", date=request.beforeDate, affectedAreaKm2=round(affected_area * 0.4, 1), baselineDiffPercent=0.0),
+                TimelinePoint(id="m-2", observationName="Intermediate Pass 1", date="2026-05-10", affectedAreaKm2=round(affected_area * 0.55, 1), baselineDiffPercent=round(change_pct * 0.4, 1)),
+                TimelinePoint(id="m-3", observationName="Intermediate Pass 2", date="2026-06-01", affectedAreaKm2=round(affected_area * 0.8, 1), baselineDiffPercent=round(change_pct * 0.75, 1)),
+                TimelinePoint(id="m-4", observationName="Post-Event Analysis", date=request.afterDate, affectedAreaKm2=affected_area, baselineDiffPercent=change_pct),
             ],
             geoJson=GeoJsonFeatureCollection(
                 type="FeatureCollection",
@@ -354,9 +393,9 @@ class NISARPipelineService:
                         id="miss-1",
                         properties={
                             "name": "Atchafalaya Floodway Inflow Sector",
-                            "intensity": "high",
-                            "areaKm2": 24.6,
-                            "backscatterDeltaDb": -7.1,
+                            "intensity": "high" if scale > 0.85 else "moderate",
+                            "areaKm2": affected_area,
+                            "backscatterDeltaDb": diff_db,
                             "description": "Significant backscatter drop typical of open shallow water inundating seasonal cypress swamp.",
                         },
                         geometry={
@@ -378,6 +417,14 @@ class NISARPipelineService:
 
     def _build_danube_scenario(self, request: AnalysisRequest) -> AnalysisResult:
         change_type = "Candidate Surface Change"
+        scale = self._compute_date_scale_factor(request.beforeDate, request.afterDate, baseline_nominal_days=40.0)
+
+        base_area = 26.8
+        affected_area = round(base_area * scale, 1)
+        change_pct = round(min(95.0, 12.3 * (scale ** 0.8)), 1)
+        diff_db = round(-5.2 * min(1.6, max(0.5, scale ** 0.5)), 1)
+        after_db = round(-10.8 + diff_db, 1)
+
         return AnalysisResult(
             id="ts-nisar-2026-0774",
             location="Danube River Floodplain",
@@ -388,19 +435,19 @@ class NISARPipelineService:
             afterDate=request.afterDate,
             analysisMode=request.analysisMode,
             changeType=change_type,
-            affectedAreaKm2=26.8,
-            changePercent=12.3,
+            affectedAreaKm2=affected_area,
+            changePercent=change_pct,
             confidence="Moderate",
-            changeIntensity="Moderate",
+            changeIntensity="Moderate" if scale > 0.6 else "Low",
             summary=(
-                "Multi-temporal radar analysis indicates surface roughness and dielectric property changes "
-                "across peripheral wetlands and riparian meadows. Approximately 26.8 km² flagged for field verification."
+                f"Multi-temporal radar analysis indicates surface roughness and dielectric property changes "
+                f"across peripheral wetlands and riparian meadows. Approximately {affected_area} km² flagged for field verification."
             ),
             isDemoData=True,
             scientificMetrics=ScientificMetrics(
                 beforeBackscatterDb=-10.8,
-                afterBackscatterDb=-16.0,
-                differenceDb=-5.2,
+                afterBackscatterDb=after_db,
+                differenceDb=diff_db,
                 thresholdDb=-4.0,
                 classificationMethod="NISAR L-band Surface Roughness Ratio",
                 polarization="HH / HV Dual-Pol",
@@ -408,10 +455,10 @@ class NISARPipelineService:
                 radarBand="L-band (24 cm wavelength)",
             ),
             timeline=[
-                TimelinePoint(id="d-1", observationName="Observation 1", date="2026-03-20", affectedAreaKm2=14.0, baselineDiffPercent=0.0),
-                TimelinePoint(id="d-2", observationName="Observation 2", date="2026-04-05", affectedAreaKm2=16.5, baselineDiffPercent=2.5),
-                TimelinePoint(id="d-3", observationName="Observation 3", date="2026-04-28", affectedAreaKm2=21.0, baselineDiffPercent=7.0),
-                TimelinePoint(id="d-4", observationName="Observation 4", date=request.afterDate, affectedAreaKm2=26.8, baselineDiffPercent=12.3),
+                TimelinePoint(id="d-1", observationName="Pre-Event Baseline", date=request.beforeDate, affectedAreaKm2=round(affected_area * 0.45, 1), baselineDiffPercent=0.0),
+                TimelinePoint(id="d-2", observationName="Intermediate Pass 1", date="2026-04-05", affectedAreaKm2=round(affected_area * 0.6, 1), baselineDiffPercent=round(change_pct * 0.35, 1)),
+                TimelinePoint(id="d-3", observationName="Intermediate Pass 2", date="2026-04-28", affectedAreaKm2=round(affected_area * 0.8, 1), baselineDiffPercent=round(change_pct * 0.7, 1)),
+                TimelinePoint(id="d-4", observationName="Post-Event Analysis", date=request.afterDate, affectedAreaKm2=affected_area, baselineDiffPercent=change_pct),
             ],
             geoJson=GeoJsonFeatureCollection(
                 type="FeatureCollection",
@@ -421,9 +468,9 @@ class NISARPipelineService:
                         id="dan-1",
                         properties={
                             "name": "Kopacki Rit Marshland Surcharge",
-                            "intensity": "moderate",
-                            "areaKm2": 18.0,
-                            "backscatterDeltaDb": -5.8,
+                            "intensity": "moderate" if scale > 0.7 else "low",
+                            "areaKm2": affected_area,
+                            "backscatterDeltaDb": diff_db,
                             "description": "Floodplain retention basin filling with seasonal flood pulse.",
                         },
                         geometry={

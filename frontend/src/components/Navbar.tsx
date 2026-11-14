@@ -13,7 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isBackendConnected,
 }) => {
   return (
-    <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5 transition-all">
+    <header className="sticky top-0 z-[1200] bg-black/80 backdrop-blur-md border-b border-white/5 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Brand / Logo (matching reference: geometric delta chevron + clean wordmark) */}
         <div 

@@ -90,9 +90,9 @@ export const MapViewer: React.FC<MapViewerProps> = ({
   };
 
   return (
-    <div className="relative w-full h-[460px] lg:h-[620px] rounded-2xl overflow-hidden border border-white/10 bg-midnight-950 shadow-2xl">
+    <div className="relative w-full h-[460px] lg:h-[620px] rounded-2xl overflow-hidden border border-white/10 bg-midnight-950 shadow-2xl isolate">
       {/* Top Floating Badge */}
-      <div className="absolute top-4 left-4 z-[1000] bg-black/85 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/10 text-xs font-medium flex items-center gap-2.5 shadow-lg">
+      <div className="absolute top-4 left-4 z-[500] bg-black/85 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/10 text-xs font-medium flex items-center gap-2.5 shadow-lg">
         <span className="w-2 h-2 rounded-full bg-acid-400 animate-pulse"></span>
         <span className="text-white font-semibold">{locationName}</span>
         <span className="text-white/20">|</span>
@@ -100,7 +100,7 @@ export const MapViewer: React.FC<MapViewerProps> = ({
       </div>
 
       {/* Layer Control Panel Floating Widget (Clean glass design) */}
-      <div className="absolute bottom-4 right-4 z-[1000] bg-black/85 backdrop-blur-md p-3.5 rounded-xl border border-white/10 shadow-2xl max-w-xs">
+      <div className="absolute bottom-4 right-4 z-[500] bg-black/85 backdrop-blur-md p-3.5 rounded-xl border border-white/10 shadow-2xl max-w-xs">
         <div className="flex items-center gap-2 text-xs font-semibold text-white mb-3 pb-2 border-b border-white/10">
           <Layers className="w-4 h-4 text-electric-400" />
           <span>Active Map Layers</span>

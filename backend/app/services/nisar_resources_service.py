@@ -56,6 +56,41 @@ class NISARResourceService:
         return [
             ResourceLink(
                 provider=self.PROVIDER_ID,
+                category="portal",
+                title="NASA Science NISAR Mission Data",
+                url="https://science.nasa.gov/mission/nisar/data",
+                description="NASA Science NISAR official mission data portal, access points, and calibration references.",
+            ),
+            ResourceLink(
+                provider=self.PROVIDER_ID,
+                category="documentation",
+                title="ASF NISAR Data Access Overview",
+                url="https://nisar-docs.asf.alaska.edu/access-overview",
+                description="ASF overview of data access methods, programmatic download mechanisms, and token authentication.",
+            ),
+            ResourceLink(
+                provider=self.PROVIDER_ID,
+                category="documentation",
+                title="ASF NISAR Products Overview",
+                url="https://nisar-docs.asf.alaska.edu/products-overview",
+                description="Comprehensive breakdown of Level 1 (RSLC/GSLC) and Level 2 (GCOV, GUNW) SAR product specifications.",
+            ),
+            ResourceLink(
+                provider=self.PROVIDER_ID,
+                category="documentation",
+                title="ASF NISAR Data Availability Overview",
+                url="https://nisar-docs.asf.alaska.edu/availability-overview",
+                description="Latency tiers, forward processing schedules, and data availability timelines for NISAR.",
+            ),
+            ResourceLink(
+                provider=self.PROVIDER_ID,
+                category="tutorial",
+                title="ASF earthaccess Python Guide for NISAR",
+                url="https://nisar-docs.asf.alaska.edu/earthaccess",
+                description="Official guide on searching and streaming NISAR HDF5 granules directly using the earthaccess Python library.",
+            ),
+            ResourceLink(
+                provider=self.PROVIDER_ID,
                 category="documentation",
                 title="NISAR Data User Guide (ASF)",
                 url="https://nisar-docs.asf.alaska.edu/",

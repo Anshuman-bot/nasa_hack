@@ -105,6 +105,64 @@ export const ScientificTransparency: React.FC<ScientificTransparencyProps> = ({ 
         </div>
       )}
 
+      {/* Official NISAR & ASF Data Documentation References */}
+      <div className="p-3.5 rounded-xl bg-black/60 border border-white/10 space-y-2 text-xs">
+        <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+          <span className="font-semibold text-white flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5 text-electric-400" />
+            Official NASA & ASF NISAR Documentation
+          </span>
+          <span className="text-[10px] font-mono text-electric-400">Verified Links</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+          <a
+            href="https://science.nasa.gov/mission/nisar/data"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors border border-white/5"
+          >
+            <span>NASA NISAR Mission Data</span>
+            <span className="text-electric-400 font-mono">↗</span>
+          </a>
+          <a
+            href="https://nisar-docs.asf.alaska.edu/access-overview"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors border border-white/5"
+          >
+            <span>ASF Data Access Overview</span>
+            <span className="text-electric-400 font-mono">↗</span>
+          </a>
+          <a
+            href="https://nisar-docs.asf.alaska.edu/products-overview"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors border border-white/5"
+          >
+            <span>ASF Products (GCOV/GSLC)</span>
+            <span className="text-electric-400 font-mono">↗</span>
+          </a>
+          <a
+            href="https://nisar-docs.asf.alaska.edu/availability-overview"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors border border-white/5"
+          >
+            <span>ASF Availability & Latency</span>
+            <span className="text-electric-400 font-mono">↗</span>
+          </a>
+          <a
+            href="https://nisar-docs.asf.alaska.edu/earthaccess"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="col-span-1 sm:col-span-2 flex items-center justify-between p-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors border border-white/5"
+          >
+            <span>ASF Python earthaccess Search Guide</span>
+            <span className="text-electric-400 font-mono">↗</span>
+          </a>
+        </div>
+      </div>
+
       {/* Conservative Scientific Disclaimer */}
       <div className="p-3.5 rounded-xl bg-black/80 border border-white/10 text-xs text-slate-300 leading-relaxed flex items-start gap-3">
         <Info className="w-4 h-4 text-electric-400 shrink-0 mt-0.5" />
