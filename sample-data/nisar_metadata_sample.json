@@ -1,0 +1,25 @@
+{
+  "mission": "NASA-ISRO SAR (NISAR)",
+  "instrument": "L-band Dual-Pol Synthetic Aperture Radar",
+  "productLevel": "L2 GCOV (Geocoded Covariance)",
+  "orbitCycleDays": 12,
+  "polarization": "HH / HV",
+  "spatialResolutionMeters": 10.0,
+  "nominalFrequencyGhz": 1.25,
+  "sampleScenes": [
+    {
+      "id": "NISAR_L2_PR_GCOV_001_024_A_20260512T001422_20260512T001452",
+      "acquisitionDate": "2026-05-12",
+      "orbitPass": "Ascending",
+      "testbed": "Brahmaputra River Corridor",
+      "meanBackscatterDb": -11.2
+    },
+    {
+      "id": "NISAR_L2_PR_GCOV_001_024_A_20260624T001421_20260624T001451",
+      "acquisitionDate": "2026-06-24",
+      "orbitPass": "Ascending",
+      "testbed": "Brahmaputra River Corridor",
+      "meanBackscatterDb": -18.7
+    }
+  ]
+}
