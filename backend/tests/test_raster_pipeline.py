@@ -238,7 +238,110 @@ def test_api_nisar_local_location():
     data = resp.json()
     assert data["isDemoData"] is False
     assert data["affectedAreaKm2"] > 0.0
+    assert data["changeType"] == "Candidate Radar Surface Change"
     assert "NISAR" in data["rasterMetadata"].get("nisarMetadata", {}).get("mission", "")
+
+
+def test_scientific_safety_candidate_surface_change():
+    """Processing layer must report 'Candidate Radar Surface Change' rather than assuming flood."""
+    pipeline = LocalRasterSurfaceChangePipeline()
+    result = pipeline.execute(
+        before_raster_path=NISAR_BEFORE,
+        after_raster_path=NISAR_AFTER,
+        threshold_db=4.5,
+        analysis_mode="flood",
+    )
+    assert result.changeType == "Candidate Radar Surface Change"
+    assert "candidate radar surface change" in result.summary.lower()
+    for feature in result.geoJson.features:
+        assert feature.properties.get("changeClassification") == "candidate radar surface change"
+
+
+def test_change_detection_service_direct_feed():
+    """Verify that ChangeDetectionService can be directly fed from NISARGCOVAdapter."""
+    from backend.app.services.raster_engine import ChangeDetectionService
+    from backend.app.services.nisar_gcov_adapter import NISARGCOVAdapter
+
+    adapter = NISARGCOVAdapter()
+    loaded_b, meta_b = adapter.load_raster(NISAR_BEFORE, polarization="HHHH")
+    loaded_a, meta_a = adapter.load_raster(NISAR_AFTER, polarization="HHHH")
+
+    service = ChangeDetectionService()
+    result = service.detect_change(
+        before_raster=loaded_b,
+        after_raster=loaded_a,
+        meta_b=meta_b.to_dict(),
+        meta_a=meta_a.to_dict(),
+        threshold_db=4.5,
+        analysis_mode="flood",
+    )
+
+    assert result.affectedAreaKm2 > 0.0
+    assert result.changeType == "Candidate Radar Surface Change"
+    assert result.rasterMetadata["nisarMetadata"]["mission"] == "NISAR"
+
+
+def test_nisar_polarization_selection_hvhv():
+    """Verify user can select cross-pol (HVHV) channel if present in NISAR file."""
+    from backend.app.services.nisar_gcov_adapter import NISARGCOVAdapter
+    adapter = NISARGCOVAdapter()
+    loaded, meta = adapter.load_raster(NISAR_BEFORE, polarization="HVHV")
+    assert meta.polarization == "HVHV"
+    assert loaded.data.shape == (100, 100)
+
+
+def test_nisar_aoi_windowing_performance():
+    """Verify AOI bounds extraction slices sub-arrays without full memory copies."""
+    from backend.app.services.nisar_gcov_adapter import NISARGCOVAdapter
+    adapter = NISARGCOVAdapter()
+    aoi = (91.72, 26.17, 91.76, 26.21)
+    loaded, meta = adapter.load_raster(NISAR_BEFORE, polarization="HHHH", aoi_bounds=aoi)
+    # Full shape is 100x100, AOI sub-array must be smaller
+    assert loaded.data.shape[0] < 100
+    assert loaded.data.shape[1] < 100
+    assert loaded.bounds.left >= 91.70
+
+
+def test_incompatible_geometry_raises_error():
+    """Differing orbit directions (e.g. Ascending vs Descending) must raise ValueError."""
+    from backend.app.services.raster_engine import ChangeDetectionService
+    from backend.app.services.nisar_gcov_adapter import NISARGCOVAdapter
+
+    adapter = NISARGCOVAdapter()
+    loaded_b, meta_b = adapter.load_raster(NISAR_BEFORE, polarization="HHHH")
+    loaded_a, meta_a = adapter.load_raster(NISAR_AFTER, polarization="HHHH")
+
+    meta_b_dict = meta_b.to_dict()
+    meta_a_dict = meta_a.to_dict()
+    meta_a_dict["orbitDirection"] = "Descending"
+
+    service = ChangeDetectionService()
+    error_raised = False
+    try:
+        service.detect_change(
+            before_raster=loaded_b,
+            after_raster=loaded_a,
+            meta_b=meta_b_dict,
+            meta_a=meta_a_dict,
+        )
+    except ValueError as val_err:
+        if "Incompatible observation geometry" in str(val_err):
+            error_raised = True
+    assert error_raised, "Expected ValueError for incompatible orbit directions"
+
+
+def test_api_nisar_metadata_endpoint():
+    """GET /api/nisar/metadata returns metadata for sample NISAR pair."""
+    client = TestClient(app)
+    resp = client.get("/api/nisar/metadata")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "files" in data
+    assert len(data["files"]) >= 2
+    for file_meta in data["files"]:
+        assert file_meta["mission"] == "NISAR"
+        assert file_meta["productType"] == "GCOV"
+        assert len(file_meta["availablePolarizations"]) >= 1
 
 
 if __name__ == "__main__":
@@ -265,5 +368,17 @@ if __name__ == "__main__":
     print("PASS: NISAR pair pipeline -> flood zone detected")
     test_api_nisar_local_location()
     print("PASS: POST /api/analyze nisar_local -> non-demo result")
+    test_scientific_safety_candidate_surface_change()
+    print("PASS: Scientific safety -> Candidate Radar Surface Change reported")
+    test_change_detection_service_direct_feed()
+    print("PASS: ChangeDetectionService direct raster feed operational")
+    test_nisar_polarization_selection_hvhv()
+    print("PASS: Cross-pol HVHV channel selectable")
+    test_nisar_aoi_windowing_performance()
+    print("PASS: AOI windowed reading prevents full memory copies")
+    test_incompatible_geometry_raises_error()
+    print("PASS: Incompatible geometry raises clear ValueError")
+    test_api_nisar_metadata_endpoint()
+    print("PASS: GET /api/nisar/metadata endpoint operational")
     print()
     print("All Milestone 2 + 3 tests passed successfully!")

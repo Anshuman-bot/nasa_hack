@@ -54,3 +54,28 @@ def run_sar_analysis(request: AnalysisRequest):
 def list_locations():
     """Return available monitored testbed regions."""
     return {"locations": get_sample_locations()}
+
+@router.get("/api/nisar/metadata", tags=["Metadata"])
+def inspect_nisar_metadata():
+    """Inspect and return standardized metadata for local NISAR GCOV sample files."""
+    import os
+    from ..services.nisar_gcov_adapter import NISARGCOVAdapter
+    nisar_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../sample-data/nisar"))
+    if not os.path.exists(nisar_dir):
+        raise HTTPException(status_code=404, detail="sample-data/nisar directory not found.")
+    files = sorted([
+        os.path.join(nisar_dir, f)
+        for f in os.listdir(nisar_dir)
+        if f.lower().endswith((".h5", ".he5", ".hdf5"))
+    ])
+    if not files:
+        raise HTTPException(status_code=404, detail="No NISAR HDF5 files found in sample-data/nisar/.")
+    adapter = NISARGCOVAdapter()
+    meta_list = []
+    for f in files:
+        try:
+            m = adapter.inspect_metadata(f)
+            meta_list.append(m.to_dict())
+        except Exception as e:
+            meta_list.append({"sourceFilename": os.path.basename(f), "error": str(e)})
+    return {"files": meta_list}

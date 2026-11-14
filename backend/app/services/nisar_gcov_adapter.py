@@ -57,16 +57,26 @@ class NISARGCOVMetadata:
         return {
             "mission": self.mission,
             "productType": self.product_type,
+            "product_type": self.product_type,
             "polarization": self.polarization,
             "availablePolarizations": self.available_polarizations,
+            "available_polarizations": self.available_polarizations,
             "observationDate": self.observation_date,
+            "observation_date": self.observation_date,
             "crs": self.crs,
+            "CRS": self.crs,
             "pixelSpacing": [round(float(v), 6) for v in self.pixel_spacing],
+            "pixel_spacing": [round(float(v), 6) for v in self.pixel_spacing],
             "pixelResolutionMeters": round(self.pixel_resolution_meters, 2),
+            "pixel_resolution": round(self.pixel_resolution_meters, 2),
             "sourceFilename": self.source_filename,
+            "source_filename": self.source_filename,
             "orbitDirection": self.orbit_direction,
+            "orbit_direction": self.orbit_direction,
             "trackNumber": self.track_number,
+            "track_number": self.track_number,
             "frequencyBand": self.frequency_band,
+            "frequency_band": self.frequency_band,
         }
 
 
@@ -165,6 +175,14 @@ class NISARGCOVAdapter:
             if track_val and track_val.isdigit():
                 meta["trackNumber"] = int(track_val)
 
+        if meta["mission"].upper() != "NISAR":
+            raise ValueError(f"Unsupported product: Expected mission 'NISAR', but found '{meta['mission']}'.")
+        if meta["productType"].upper() != "GCOV":
+            raise ValueError(
+                f"Unsupported NISAR product: Expected product type 'GCOV', but found '{meta['productType']}'. "
+                f"TerraScan supports Level-2 Geocoded Covariance (GCOV) products."
+            )
+
         return meta
 
     def inspect_metadata(self, file_path: str) -> NISARGCOVMetadata:
@@ -259,16 +277,33 @@ class NISARGCOVAdapter:
                 frequency_band=freq_name,
             )
 
+    def prepare_comparable_values(self, data: np.ndarray) -> np.ndarray:
+        """
+        Convert linear backscatter intensity / power to decibels (10 * log10(sigma0))
+        for standardized multi-temporal comparison. If values are already in decibels, preserves array.
+        """
+        out = data.copy()
+        valid_mask = np.isfinite(out)
+        valid_vals = out[valid_mask]
+        if valid_vals.size == 0:
+            return out
+        if np.all(valid_vals > 0) and np.median(valid_vals) < 50.0:
+            clipped = np.clip(out, 1e-7, None)
+            out[valid_mask] = 10.0 * np.log10(clipped[valid_mask])
+        return out
+
     def load_raster(
         self,
         file_path: str,
         polarization: Optional[str] = None,
         aoi_bounds: Optional[Tuple[float, float, float, float]] = None,
+        prepare_values: bool = True,
     ) -> Tuple[LoadedRaster, NISARGCOVMetadata]:
         """
         Extract the specified polarimetric backscatter raster layer from NISAR L2 GCOV.
         Supports windowed extraction via aoi_bounds (min_lon, min_lat, max_lon, max_lat)
         to prevent large memory spikes on high-resolution orbit swaths.
+        Masks invalid values and prepares comparable decibel values.
         """
         self._ensure_h5py()
 
@@ -361,7 +396,27 @@ class NISARGCOVAdapter:
             # Extract NoData fill value
             nodata_val = np.nan
             if "_FillValue" in dataset.attrs:
-                nodata_val = float(dataset.attrs["_FillValue"])
+                try:
+                    nodata_val = float(dataset.attrs["_FillValue"])
+                except Exception:
+                    pass
+
+            # Mask invalid values
+            if nodata_val is not None and not np.isnan(nodata_val):
+                data[data == nodata_val] = np.nan
+            data[~np.isfinite(data)] = np.nan
+            data[data <= 0] = np.nan
+
+            if np.all(np.isnan(data)):
+                raise ValueError(
+                    f"Invalid data: NISAR observation dataset '{selected_pol}' in {filename} "
+                    f"contains zero valid finite backscatter pixels."
+                )
+
+            # Prepare comparable values (convert linear power to dB)
+            if prepare_values:
+                data = self.prepare_comparable_values(data)
+                nodata_val = np.nan
 
         loaded = LoadedRaster(
             data=data,

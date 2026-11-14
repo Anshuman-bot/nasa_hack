@@ -154,13 +154,24 @@ class LocalRasterSurfaceChangePipeline:
     ) -> Tuple[np.ndarray, np.ndarray, rasterio.Affine, Tuple[float, float], float]:
         """
         Validate CRS and dimensions. Crop to intersection window if extents overlap.
+        Uses pure in-memory affine coordinates slicing to support both GeoTIFF and HDF5 rasters.
         """
         # Validate CRS compatibility
-        if before.crs and after.crs and before.crs != after.crs:
+        if before.crs and after.crs and str(before.crs).upper() != str(after.crs).upper():
             raise ValueError(
                 f"Incompatible Coordinate Reference Systems: pre-event CRS ({before.crs}) "
                 f"does not match post-event CRS ({after.crs}). Please reproject to a common CRS."
             )
+
+        # Validate resolution compatibility
+        if before.res and after.res:
+            dx_ratio = abs(before.res[0]) / (abs(after.res[0]) + 1e-9)
+            dy_ratio = abs(before.res[1]) / (abs(after.res[1]) + 1e-9)
+            if not (0.75 <= dx_ratio <= 1.33 and 0.75 <= dy_ratio <= 1.33):
+                raise ValueError(
+                    f"Incompatible grid resolution: Pre-event pixel spacing {before.res} "
+                    f"differs significantly from post-event pixel spacing {after.res}."
+                )
 
         # Check for matching dimensions directly
         if before.data.shape == after.data.shape and before.transform == after.transform:
@@ -178,20 +189,35 @@ class LocalRasterSurfaceChangePipeline:
                 f"Before bounds: {before.bounds}, After bounds: {after.bounds}"
             )
 
-        # Read intersecting window from both
-        with rasterio.open(before.file_path) as src_b, rasterio.open(after.file_path) as src_a:
-            win_b = from_bounds(inter_left, inter_bottom, inter_right, inter_top, transform=src_b.transform)
-            win_a = from_bounds(inter_left, inter_bottom, inter_right, inter_top, transform=src_a.transform)
+        # Pure in-memory affine slicing for both rasters
+        def slice_from_bounds(raster: LoadedRaster, left: float, bottom: float, right: float, top: float):
+            inv = ~raster.transform
+            c0, r0 = [int(round(v)) for v in inv * (left, top)]
+            c1, r1 = [int(round(v)) for v in inv * (right, bottom)]
+            c_start, c_end = max(0, min(c0, c1)), min(raster.data.shape[1], max(c0, c1))
+            r_start, r_end = max(0, min(r0, r1)), min(raster.data.shape[0], max(r0, r1))
+            return raster.data[r_start:r_end, c_start:c_end]
 
-            cropped_b = src_b.read(1, window=win_b).astype(np.float32)
-            cropped_a = src_a.read(1, window=win_a).astype(np.float32)
-            cropped_transform = src_b.window_transform(win_b)
+        cropped_b = slice_from_bounds(before, inter_left, inter_bottom, inter_right, inter_top)
+        cropped_a = slice_from_bounds(after, inter_left, inter_bottom, inter_right, inter_top)
 
-        # Match dimensions to minimum mutual rows and columns
         min_rows = min(cropped_b.shape[0], cropped_a.shape[0])
         min_cols = min(cropped_b.shape[1], cropped_a.shape[1])
 
-        return cropped_b[:min_rows, :min_cols], cropped_a[:min_rows, :min_cols], cropped_transform, before.res, inter_top
+        if min_rows <= 0 or min_cols <= 0:
+            raise ValueError("Zero overlapping grid cells found between before and after observations.")
+
+        cropped_b = cropped_b[:min_rows, :min_cols]
+        cropped_a = cropped_a[:min_rows, :min_cols]
+
+        dx = abs(before.res[0])
+        dy = abs(before.res[1])
+        y_decreasing = before.transform.e < 0
+        cropped_transform = Affine(
+            dx, 0.0, inter_left,
+            0.0, -dy if y_decreasing else dy, inter_top if y_decreasing else inter_bottom
+        )
+        return cropped_b, cropped_a, cropped_transform, before.res, inter_top
 
     def _convert_to_db(self, array: np.ndarray, valid_mask: np.ndarray) -> np.ndarray:
         """
@@ -238,12 +264,69 @@ class LocalRasterSurfaceChangePipeline:
         after_date: Optional[str] = None,
     ) -> AnalysisResult:
         """
-        Run the complete local surface-change pipeline on two georeferenced raster files (GeoTIFF or NISAR HDF5).
+        Load observations and execute change detection pipeline on two georeferenced raster files (GeoTIFF or NISAR HDF5).
         """
         logger.info(f"Loading pre-event raster: {before_raster_path}")
         before_raster, meta_b = self._load_observation(before_raster_path, polarization=polarization, aoi_bounds=aoi_bounds)
         logger.info(f"Loading post-event raster: {after_raster_path}")
         after_raster, meta_a = self._load_observation(after_raster_path, polarization=polarization, aoi_bounds=aoi_bounds)
+
+        return self.detect_change(
+            before_raster=before_raster,
+            after_raster=after_raster,
+            meta_b=meta_b,
+            meta_a=meta_a,
+            threshold_db=threshold_db,
+            analysis_mode=analysis_mode,
+            min_cluster_pixels=min_cluster_pixels,
+            location_label=location_label,
+            before_date=before_date,
+            after_date=after_date,
+        )
+
+    def detect_change(
+        self,
+        before_raster: LoadedRaster,
+        after_raster: LoadedRaster,
+        meta_b: Optional[Dict[str, Any]] = None,
+        meta_a: Optional[Dict[str, Any]] = None,
+        threshold_db: float = 4.5,
+        analysis_mode: str = "flood",
+        min_cluster_pixels: int = 3,
+        location_label: Optional[str] = None,
+        before_date: Optional[str] = None,
+        after_date: Optional[str] = None,
+    ) -> AnalysisResult:
+        """
+        Core change detection routine: aligns observations, computes calibrated backscatter difference,
+        applies noise filtering, computes spatial metrics, and vectorizes candidate radar surface change.
+        """
+        # Validate observation geometry for NISAR observations
+        if meta_b and meta_a:
+            orbit_b = (meta_b.get("orbitDirection") or meta_b.get("orbit_direction") or "").strip().lower()
+            orbit_a = (meta_a.get("orbitDirection") or meta_a.get("orbit_direction") or "").strip().lower()
+            if orbit_b and orbit_a and orbit_b != orbit_a:
+                raise ValueError(
+                    f"Incompatible observation geometry: Pre-event acquisition is '{meta_b.get('orbitDirection')}' "
+                    f"while post-event acquisition is '{meta_a.get('orbitDirection')}'. "
+                    f"Cross-pass radar backscatter cannot be compared safely."
+                )
+
+            freq_b = meta_b.get("frequencyBand") or meta_b.get("frequency_band")
+            freq_a = meta_a.get("frequencyBand") or meta_a.get("frequency_band")
+            if freq_b and freq_a and freq_b != freq_a:
+                raise ValueError(
+                    f"Incompatible frequency bands: Pre-event observation uses '{freq_b}' while post-event uses '{freq_a}'. "
+                    f"Cross-frequency radar backscatter cannot be compared safely."
+                )
+
+            track_b = meta_b.get("trackNumber") or meta_b.get("track_number")
+            track_a = meta_a.get("trackNumber") or meta_a.get("track_number")
+            if track_b is not None and track_a is not None and track_b != track_a:
+                raise ValueError(
+                    f"Incompatible observation geometry: Pre-event track ({track_b}) does not match "
+                    f"post-event track ({track_a}). Repeat-pass radar change detection requires matching track geometry."
+                )
 
         # 1. Align and crop to mutual footprint
         data_b, data_a, transform, res, center_lat = self._align_and_crop(before_raster, after_raster)
@@ -264,7 +347,7 @@ class LocalRasterSurfaceChangePipeline:
         total_valid_pixels = int(np.sum(valid_mask))
 
         if total_valid_pixels == 0:
-            raise ValueError("Zero valid overlapping pixels found between before and after rasters after nodata exclusion.")
+            raise ValueError("Invalid data: Zero valid overlapping pixels found between pre-event and post-event observations after nodata exclusion.")
 
         # 3. Calibration / dB conversion
         db_b = self._convert_to_db(data_b, valid_mask)
@@ -276,20 +359,17 @@ class LocalRasterSurfaceChangePipeline:
         diff_db[valid_mask] = db_a[valid_mask] - db_b[valid_mask]
         abs_magnitude = np.abs(diff_db)
 
-        # 5. Thresholding
-        # In flood mode: detect significant drop in specular backscatter (delta <= -threshold_db)
-        # In general surface change mode: detect absolute delta (|delta| >= threshold_db)
+        # 5. Thresholding & Scientific Safety
+        # Reports 'Candidate Radar Surface Change' (never asserting definitive flooding solely from pixel differences)
+        change_type_str = "Candidate Radar Surface Change"
         if analysis_mode == "flood":
             raw_change_mask = (diff_db <= -threshold_db) & valid_mask
-            change_type_str = "Candidate Surface Water Inundation"
-            processing_mode_label = "flood_specular_attenuation"
+            processing_mode_label = "radar_specular_attenuation"
         else:
             raw_change_mask = (abs_magnitude >= threshold_db) & valid_mask
-            change_type_str = "Candidate Surface Disturbance"
             processing_mode_label = "general_surface_change"
 
         # 6. Morphological noise filtering / connected-component filtering
-        # Removes isolated 1-2 pixel false alarms caused by radar speckle
         structure = np.ones((3, 3), dtype=bool)
         opened_mask = binary_opening(raw_change_mask, structure=structure)
 
@@ -341,10 +421,9 @@ class LocalRasterSurfaceChangePipeline:
             feature_idx = 1
             for geom, val in shape_gen:
                 if val == 1:
-                    # Estimate approximate area of this polygon
                     poly_intensity = "high" if abs(mean_change) >= (threshold_db + 3.0) else "moderate"
                     poly_desc = (
-                        f"Candidate surface change region showing {mean_change:.1f} dB backscatter delta. "
+                        f"Candidate radar surface change zone showing {mean_change:.1f} dB backscatter delta. "
                         f"Detected via {processing_mode_label} thresholding."
                     )
 
@@ -352,9 +431,10 @@ class LocalRasterSurfaceChangePipeline:
                         type="Feature",
                         id=f"poly-det-{feature_idx}",
                         properties={
-                            "name": f"Candidate Disturbance Zone {feature_idx}",
+                            "name": f"Candidate Radar Surface Change Zone {feature_idx}",
                             "intensity": poly_intensity,
                             "backscatterDeltaDb": round(mean_change, 2),
+                            "changeClassification": "candidate radar surface change",
                             "description": poly_desc,
                         },
                         geometry=geom,
@@ -375,8 +455,9 @@ class LocalRasterSurfaceChangePipeline:
         # 9. Assembly of Transparent Scientific Result
         summary_text = (
             f"Multi-temporal SAR analysis identified approximately {affected_area_km2:.2f} km² "
-            f"({change_percent:.2f}% of evaluated footprint) as candidate surface change. "
-            f"Evaluated across {total_valid_pixels:,} valid pixels with backscatter delta cutoff at {threshold_db:.1f} dB."
+            f"({change_percent:.2f}% of evaluated footprint) as candidate radar surface change. "
+            f"Evaluated across {total_valid_pixels:,} valid pixels with backscatter delta cutoff at {threshold_db:.1f} dB. "
+            f"Note: Detected regions represent candidate radar surface change; separate flood classification requires hydrological and terrain validation."
         )
 
         is_nisar = bool(meta_b and meta_b.get("mission") == "NISAR")
@@ -386,7 +467,7 @@ class LocalRasterSurfaceChangePipeline:
 
         processing_params = ProcessingParameters(
             thresholdDb=float(threshold_db),
-            nodataHandling=f"Strict exclusion of NaN, Inf, and specified nodata ({nodata_b}, {nodata_a})",
+            nodataHandling=f"Strict exclusion of NaN, Inf, non-positive, and specified nodata ({nodata_b}, {nodata_a})",
             pixelResolutionMeters=round(pixel_res_meters, 1),
             processingMode=processing_mode_label,
             minClusterPixels=int(min_cluster_pixels),
@@ -399,7 +480,7 @@ class LocalRasterSurfaceChangePipeline:
             afterBackscatterDb=round(after_mean_db, 2),
             differenceDb=round(mean_change, 2),
             thresholdDb=float(threshold_db),
-            classificationMethod="NISAR L2 GCOV Relative Amplitude Differencing" if is_nisar else "Local Multi-Temporal SAR Amplitude Ratio Differencing",
+            classificationMethod="NISAR L2 GCOV Relative Amplitude Differencing (Candidate Radar Surface Change)" if is_nisar else "Local Multi-Temporal SAR Amplitude Ratio Differencing (Candidate Radar Surface Change)",
             polarization=meta_b.get("polarization", "Dual-Pol / Co-Pol SAR") if meta_b else "Dual-Pol / Co-Pol SAR",
             sensorFrequency="1.25 GHz (L-band NISAR)" if is_nisar else "1.25 GHz L-band / Microwave",
             radarBand="NISAR L-band GCOV" if is_nisar else "L-band / Microwave SAR",
@@ -415,8 +496,8 @@ class LocalRasterSurfaceChangePipeline:
             "transform": [round(v, 6) for v in transform[:6]],
             "dimensions": [data_b.shape[0], data_b.shape[1]],
             "pixelResolutionMeters": round(pixel_res_meters, 1),
-            "beforeRasterFile": os.path.basename(before_raster_path),
-            "afterRasterFile": os.path.basename(after_raster_path),
+            "beforeRasterFile": os.path.basename(before_raster.file_path),
+            "afterRasterFile": os.path.basename(after_raster.file_path),
         }
         if meta_b:
             raster_meta["nisarMetadata"] = meta_b
@@ -424,7 +505,7 @@ class LocalRasterSurfaceChangePipeline:
                 raster_meta["nisarAfterMetadata"] = meta_a
 
         return AnalysisResult(
-            id=f"ts-nisar-gcov-{os.path.basename(before_raster_path)[:10]}" if is_nisar else f"ts-local-{os.path.basename(before_raster_path)[:12]}-{os.path.basename(after_raster_path)[:12]}",
+            id=f"ts-nisar-gcov-{os.path.basename(before_raster.file_path)[:10]}" if is_nisar else f"ts-local-{os.path.basename(before_raster.file_path)[:12]}-{os.path.basename(after_raster.file_path)[:12]}",
             location=loc_title,
             locationCode="nisar_gcov" if is_nisar else "local_raster",
             centerCoordinates=center_coords,
@@ -447,3 +528,7 @@ class LocalRasterSurfaceChangePipeline:
             processingParameters=processing_params,
             rasterMetadata=raster_meta,
         )
+
+
+# Provide standardized service alias matching architecture guidelines
+ChangeDetectionService = LocalRasterSurfaceChangePipeline

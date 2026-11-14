@@ -7,7 +7,13 @@ from .nisar_pipeline import (
     BasePolygonizer,
     NISARPipelineService,
 )
-from .raster_engine import LocalRasterSurfaceChangePipeline, GeoTIFFRasterLoader, HDF5NISARAdapter
+from .raster_engine import (
+    LocalRasterSurfaceChangePipeline,
+    ChangeDetectionService,
+    GeoTIFFRasterLoader,
+    HDF5NISARAdapter,
+    LoadedRaster,
+)
 from .nisar_gcov_adapter import NISARGCOVAdapter, NISARGCOVMetadata
 
 __all__ = [
@@ -19,8 +25,10 @@ __all__ = [
     'BasePolygonizer',
     'NISARPipelineService',
     'LocalRasterSurfaceChangePipeline',
+    'ChangeDetectionService',
     'GeoTIFFRasterLoader',
     'HDF5NISARAdapter',
+    'LoadedRaster',
     'NISARGCOVAdapter',
     'NISARGCOVMetadata',
 ]
