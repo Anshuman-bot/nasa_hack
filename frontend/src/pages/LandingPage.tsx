@@ -350,17 +350,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
 
       {/* FOOTER (Minimalist, human-built aesthetic) */}
       <footer className="py-12 border-t border-white/10 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-slate-400">
-            <span className="font-semibold text-white">Terracan</span>
-            <span>&bull;</span>
-            <span>NASA Space Apps Challenge 2026 &bull; Dancing with the SARs</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-slate-400">
+              <span className="font-semibold text-white">TerraScan</span>
+              <span>&bull;</span>
+              <span>NASA Space Apps Challenge 2026 &bull; Dancing with the SARs</span>
+            </div>
+
+            <div className="flex items-center gap-6 text-slate-400">
+              <span>Free Local Stack</span>
+              <span>No Paid APIs</span>
+              <span>100% Deterministic Engine</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-400">
-            <span>Free Local Stack</span>
-            <span>No Paid APIs</span>
-            <span>100% Deterministic Engine</span>
+          <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[11px] text-slate-400">
+            <div>
+              <span className="text-slate-500 font-mono uppercase tracking-wider block mb-1">Team Leader:</span>
+              <span className="text-white font-medium">Inzmam</span> (<a href="mailto:modh.inzmam007@gmail.com" className="text-electric-400 hover:underline">modh.inzmam007@gmail.com</a>)
+            </div>
+            <div>
+              <span className="text-slate-500 font-mono uppercase tracking-wider block mb-1">Team Members:</span>
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                <span>Anshuman (<a href="mailto:iganshumanig@gmail.com" className="text-slate-300 hover:text-white hover:underline">iganshumanig@gmail.com</a>)</span>
+                <span>Dhanistha Nanda (<a href="mailto:dhanistha.nanda@gmail.com" className="text-slate-300 hover:text-white hover:underline">dhanistha.nanda@gmail.com</a>)</span>
+                <span>Anishka Yadav (<a href="mailto:anishkayadav2808@gmail.com" className="text-slate-300 hover:text-white hover:underline">anishkayadav2808@gmail.com</a>)</span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

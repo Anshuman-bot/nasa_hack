@@ -93,3 +93,14 @@ VITE_BACKEND_URL=http://localhost:8000
 - **Automated Thresholding**: Bimodal Kittler-Illingworth / Otsu surface water separation.
 - **Vectorization**: Connected-component raster-to-polygon conversion via Rasterio / GDAL.
 - **Extended Missions**: Wetlands, agricultural soil moisture, glacier velocity, and InSAR ground deformation (GSLC/GUNW).
+
+---
+
+## Team & Contact
+
+- **Team Leader**:
+  - Inzmam (`modh.inzmam007@gmail.com`)
+- **Team Members**:
+  - Anshuman (`iganshumanig@gmail.com`)
+  - Dhanistha Nanda (`dhanistha.nanda@gmail.com`)
+  - Anishka Yadav (`anishkayadav2808@gmail.com`)
