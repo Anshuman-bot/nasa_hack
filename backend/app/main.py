@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.routes import router
+from .api.satellite_routes import satellite_router
 
 app = FastAPI(
     title="TerraScan - NISAR SAR Surface Change API",
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(satellite_router)
 
 if __name__ == "__main__":
     import uvicorn
