@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 AnalysisMode = Literal['flood', 'surface_change']
 ConfidenceLevel = Literal['High', 'Moderate', 'Low']
 ChangeIntensity = Literal['High', 'Moderate', 'Low', 'Subtle']
+DataSource = Literal['DEMO', 'SYNTHETIC', 'REAL_NISAR']
 
 class TimelinePoint(BaseModel):
     id: str
@@ -69,6 +70,7 @@ class AnalysisResult(BaseModel):
     changeIntensity: ChangeIntensity
     summary: str
     isDemoData: bool = True
+    dataSource: DataSource = 'DEMO'
     timeline: List[TimelinePoint]
     scientificMetrics: ScientificMetrics
     geoJson: GeoJsonFeatureCollection

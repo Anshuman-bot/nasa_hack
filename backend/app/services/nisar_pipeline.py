@@ -104,6 +104,19 @@ class NISARPipelineService:
         self.polygonizer: Optional[BasePolygonizer] = None
         self.local_raster_pipeline = LocalRasterSurfaceChangePipeline()
 
+    def _tag_source(self, result: AnalysisResult, *paths: str) -> AnalysisResult:
+        synthetic = any("synthetic" in os.path.basename(p).lower() for p in paths)
+        h5_only = all(p.lower().endswith((".h5", ".he5", ".hdf5")) for p in paths)
+        # anything not clearly a non-synthetic HDF5 pair can never be REAL_NISAR
+        result.dataSource = "SYNTHETIC" if (synthetic or not h5_only) else "REAL_NISAR"
+        result.isDemoData = False
+        if result.dataSource == "SYNTHETIC":
+            m = result.scientificMetrics
+            m.classificationMethod = "Synthetic test-data differencing (not NASA/NISAR analysis)"
+            m.sensorFrequency = m.radarBand = "n/a (synthetic test data)"
+            result.location = f"SYNTHETIC TEST DATA — {result.location}"
+        return result
+
     def execute_analysis(self, request: AnalysisRequest) -> AnalysisResult:
         """
         Execute deterministic SAR surface change detection for requested location and dates,
@@ -111,7 +124,7 @@ class NISARPipelineService:
         """
         # 1. Direct local raster processing if paths provided (GeoTIFF or NISAR HDF5)
         if request.beforeRasterPath and request.afterRasterPath:
-            return self.local_raster_pipeline.execute(
+            res = self.local_raster_pipeline.execute(
                 before_raster_path=request.beforeRasterPath,
                 after_raster_path=request.afterRasterPath,
                 threshold_db=request.thresholdDb if request.thresholdDb is not None else 4.5,
@@ -123,6 +136,7 @@ class NISARPipelineService:
                 before_date=request.beforeDate,
                 after_date=request.afterDate,
             )
+            return self._tag_source(res, request.beforeRasterPath, request.afterRasterPath)
 
         # 2. Local NISAR sample folder auto-detection
         loc_key = request.location.lower().strip()
@@ -135,7 +149,7 @@ class NISARPipelineService:
                     if f.lower().endswith((".h5", ".he5", ".hdf5"))
                 ])
                 if len(h5_files) >= 2:
-                    return self.local_raster_pipeline.execute(
+                    res = self.local_raster_pipeline.execute(
                         before_raster_path=h5_files[0],
                         after_raster_path=h5_files[1],
                         threshold_db=request.thresholdDb if request.thresholdDb is not None else 4.5,
@@ -147,6 +161,7 @@ class NISARPipelineService:
                         before_date=request.beforeDate,
                         after_date=request.afterDate,
                     )
+                    return self._tag_source(res, h5_files[0], h5_files[1])
             raise FileNotFoundError(
                 "No paired NISAR L2 GCOV (.h5) files found in sample-data/nisar/. "
                 "Please place two NISAR GCOV HDF5 observation files in sample-data/nisar/ "
@@ -158,7 +173,7 @@ class NISARPipelineService:
             base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../sample-data/synthetic_rasters"))
             b_path = os.path.join(base_dir, "synthetic_sar_before.tif")
             a_path = os.path.join(base_dir, "synthetic_sar_after.tif")
-            return self.local_raster_pipeline.execute(
+            res = self.local_raster_pipeline.execute(
                 before_raster_path=b_path,
                 after_raster_path=a_path,
                 threshold_db=request.thresholdDb if request.thresholdDb is not None else 4.5,
@@ -168,6 +183,7 @@ class NISARPipelineService:
                 before_date=request.beforeDate,
                 after_date=request.afterDate,
             )
+            return self._tag_source(res, b_path, a_path)
 
         # 4. Bundled demo scenarios
         if 'mississippi' in loc_key:

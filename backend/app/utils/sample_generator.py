@@ -34,17 +34,17 @@ def get_sample_locations() -> List[Dict[str, Any]]:
         {
             "id": "synthetic_test",
             "name": "Synthetic Brahmaputra GeoTIFF",
-            "region": "Local Real Pipeline",
+            "region": "Synthetic Local Pipeline",
             "coordinates": [26.20, 91.75],
             "zoom": 11,
-            "description": "Local georeferenced GeoTIFF pair processed via the real Milestone 2 raster differencing pipeline.",
+            "description": "Local georeferenced GeoTIFF pair processed via synthetic test differencing pipeline.",
         },
         {
             "id": "nisar_local",
             "name": "NISAR L2 GCOV (sample-data/nisar)",
-            "region": "NASA-ISRO L-band SAR",
+            "region": "NASA-ISRO L-band SAR (Local Sample)",
             "coordinates": [26.19, 91.74],
             "zoom": 11,
-            "description": "Real NASA-ISRO NISAR L2 GCOV HDF5 observation pair loaded via NISARGCOVAdapter.",
+            "description": "Local NISAR L2 GCOV HDF5 observation pair loaded via NISARGCOVAdapter.",
         },
     ]

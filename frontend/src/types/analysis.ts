@@ -78,6 +78,7 @@ export interface AnalysisResult {
   changeIntensity: ChangeIntensity;
   summary: string;
   isDemoData: boolean;
+  dataSource?: 'DEMO' | 'SYNTHETIC' | 'REAL_NISAR';
   timeline: TimelinePoint[];
   scientificMetrics: ScientificMetrics;
   geoJson: GeoJsonFeatureCollection;

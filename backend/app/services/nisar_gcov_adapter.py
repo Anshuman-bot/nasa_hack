@@ -350,6 +350,10 @@ class NISARGCOVAdapter:
 
             # Windowed / AOI extraction if specified
             if aoi_bounds is not None:
+                if "4326" not in meta.crs:
+                    from rasterio.warp import transform_bounds
+                    aoi_bounds = transform_bounds("EPSG:4326", meta.crs, *aoi_bounds)
+
                 aoi_min_x, aoi_min_y, aoi_max_x, aoi_max_y = aoi_bounds
                 
                 # Check spatial intersection with product footprint

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnalysisResult, AnalysisMode, LayerVisibility } from '../types/analysis';
-import { MONITORED_LOCATIONS, DEFAULT_ANALYSIS_RESULT } from '../data/mockAnalysisData';
+import { MONITORED_LOCATIONS } from '../data/mockAnalysisData';
 import { runAnalysis } from '../services/api';
 import { AnalysisControls } from '../components/AnalysisControls';
 import { MapViewer } from '../components/MapViewer';
@@ -27,6 +27,7 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
   const [afterDate, setAfterDate] = useState<string>(initialData.afterDate);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(initialData.analysisMode);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [runError, setRunError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'comparison' | 'heatmap'>('comparison');
 
   const [layers, setLayers] = useState<LayerVisibility>({
@@ -70,6 +71,7 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
     if (error) return;
 
     setIsLoading(true);
+    setRunError(null);
     try {
       const response = await runAnalysis({
         location: selectedLocation,
@@ -80,7 +82,7 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
       setCurrentAnalysis(response.data);
     } catch (err) {
       console.error('Analysis failed:', err);
-      setCurrentAnalysis(DEFAULT_ANALYSIS_RESULT);
+      setRunError(err instanceof Error ? err.message : 'Analysis failed');
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +103,7 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
         onRunAnalysis={handleRunAnalysis}
         isLoading={isLoading}
         dateError={getDateError()}
-        isDemoData={currentAnalysis.isDemoData}
+        dataSource={currentAnalysis.dataSource ?? (currentAnalysis.isDemoData ? 'DEMO' : 'REAL_NISAR')}
       />
 
       {/* Backend Status Notice if running in fallback mode */}
@@ -118,6 +120,12 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
 
       {/* Main Mission Control Grid */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        {runError && (
+          <div className="mb-4 px-4 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs font-mono text-amber-300 flex items-center justify-between">
+            <span>{runError}</span>
+            <button onClick={() => setRunError(null)} className="text-amber-400 hover:text-white ml-2">✕</button>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT / CENTER COLUMN: Cartography & Imagery Viewers */}
           <div className="lg:col-span-7 space-y-6">

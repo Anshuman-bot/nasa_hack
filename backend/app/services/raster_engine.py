@@ -17,6 +17,7 @@ import numpy as np
 import rasterio
 from rasterio.windows import from_bounds
 from rasterio.features import shapes
+from rasterio.warp import transform_geom, transform as warp_transform
 from scipy.ndimage import binary_opening, label
 
 from ..models.analysis import (
@@ -414,6 +415,9 @@ class LocalRasterSurfaceChangePipeline:
 
         # 8. Vectorization (GeoJSON Shapes)
         geojson_features: List[GeoJsonFeature] = []
+        geographic = "4326" in str(before_raster.crs)
+        to_wgs84 = (lambda g: g) if geographic else (lambda g: transform_geom(before_raster.crs, "EPSG:4326", g))
+
         if changed_pixel_count > 0:
             mask_uint8 = filtered_mask.astype(np.uint8)
             shape_gen = shapes(mask_uint8, mask=filtered_mask, transform=transform)
@@ -437,7 +441,7 @@ class LocalRasterSurfaceChangePipeline:
                             "changeClassification": "candidate radar surface change",
                             "description": poly_desc,
                         },
-                        geometry=geom,
+                        geometry=to_wgs84(geom),
                     )
                     geojson_features.append(feature)
                     feature_idx += 1
@@ -446,9 +450,11 @@ class LocalRasterSurfaceChangePipeline:
 
         # Approximate Center Coordinates for map pan
         if before_raster.bounds:
-            center_lng = (before_raster.bounds.left + before_raster.bounds.right) / 2.0
-            center_lat_val = (before_raster.bounds.bottom + before_raster.bounds.top) / 2.0
-            center_coords = (float(center_lat_val), float(center_lng))
+            cx = (before_raster.bounds.left + before_raster.bounds.right) / 2.0
+            cy = (before_raster.bounds.bottom + before_raster.bounds.top) / 2.0
+            if not geographic:
+                (cx,), (cy,) = warp_transform(before_raster.crs, "EPSG:4326", [cx], [cy])
+            center_coords = (float(cy), float(cx))
         else:
             center_coords = (26.18, 91.75)
 
@@ -462,8 +468,8 @@ class LocalRasterSurfaceChangePipeline:
 
         is_nisar = bool(meta_b and meta_b.get("mission") == "NISAR")
         loc_title = location_label or (f"NISAR L2 GCOV ({meta_b.get('polarization')})" if is_nisar else "Local Raster Pair Observation")
-        b_date = before_date or (meta_b.get("observationDate") if is_nisar else "Pre-Event Observation")
-        a_date = after_date or (meta_a.get("observationDate") if (meta_a and is_nisar) else "Post-Event Observation")
+        b_date = (meta_b.get("observationDate") if is_nisar else None) or before_date or "Pre-Event Observation"
+        a_date = (meta_a.get("observationDate") if (meta_a and is_nisar) else None) or after_date or "Post-Event Observation"
 
         processing_params = ProcessingParameters(
             thresholdDb=float(threshold_db),

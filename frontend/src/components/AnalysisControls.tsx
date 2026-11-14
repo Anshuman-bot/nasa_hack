@@ -1,7 +1,7 @@
 import React from 'react';
 import { MONITORED_LOCATIONS } from '../data/mockAnalysisData';
 import { AnalysisMode } from '../types/analysis';
-import { MapPin, Calendar, SlidersHorizontal, Play, AlertCircle, Database } from 'lucide-react';
+import { MapPin, Calendar, SlidersHorizontal, Play, AlertCircle } from 'lucide-react';
 
 interface AnalysisControlsProps {
   location: string;
@@ -15,8 +15,14 @@ interface AnalysisControlsProps {
   onRunAnalysis: () => void;
   isLoading: boolean;
   dateError: string | null;
-  isDemoData: boolean;
+  dataSource: 'DEMO' | 'SYNTHETIC' | 'REAL_NISAR';
 }
+
+const BADGE = {
+  DEMO:       ['DEMO DATA',           'text-amber-300 border-amber-400/40'],
+  SYNTHETIC:  ['SYNTHETIC TEST DATA', 'text-sky-300 border-sky-400/40'],
+  REAL_NISAR: ['REAL NISAR DATA',     'text-emerald-300 border-emerald-400/40'],
+} as const;
 
 export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
   location,
@@ -30,7 +36,7 @@ export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
   onRunAnalysis,
   isLoading,
   dateError,
-  isDemoData,
+  dataSource,
 }) => {
   return (
     <div className="bg-black/80 backdrop-blur-md border-b border-white/10 px-4 py-3.5 sticky top-20 z-40">
@@ -105,17 +111,10 @@ export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
 
         {/* Action Button & Demo Label */}
         <div className="flex items-center gap-3 self-end xl:self-center">
-          {/* Demo Dataset Tag */}
-          {isDemoData && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs text-slate-300">
-              <Database className="w-3.5 h-3.5 text-acid-400" />
-              <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                <span className="font-semibold text-white">Demo Dataset</span>
-                <span className="text-slate-500">|</span>
-                <span className="text-slate-400">NISAR Testbed</span>
-              </div>
-            </div>
-          )}
+          {/* Data Source Badge */}
+          <div className={`px-3 py-1.5 rounded-full border bg-white/[0.04] font-mono text-[11px] font-semibold ${BADGE[dataSource][1]}`}>
+            {BADGE[dataSource][0]}
+          </div>
 
           <button
             onClick={onRunAnalysis}

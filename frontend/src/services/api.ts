@@ -2,6 +2,7 @@ import { AnalysisRequest, AnalysisResult } from '../types/analysis';
 import { DEFAULT_ANALYSIS_RESULT, MOCK_ANALYSIS_DATABASE } from '../data/mockAnalysisData';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const LIVE_ONLY = new Set(['nisar_local', 'synthetic_test']);
 
 export interface HealthCheckResponse {
   status: string;
@@ -47,7 +48,8 @@ export const runAnalysis = async (
 ): Promise<{ data: AnalysisResult; isLiveBackend: boolean }> => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutDuration = LIVE_ONLY.has(request.location) ? 120_000 : 4000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
     const response = await fetch(`${BACKEND_URL}/api/analyze`, {
       method: 'POST',
       headers: {
@@ -61,7 +63,12 @@ export const runAnalysis = async (
       const data = await response.json();
       return { data, isLiveBackend: true };
     }
+    if (LIVE_ONLY.has(request.location)) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.detail ?? `Backend returned ${response.status}`);
+    }
   } catch (err) {
+    if (LIVE_ONLY.has(request.location)) throw err;
     console.warn('Live backend query failed or offline, resolving via deterministic local analysis engine:', err);
   }
 
@@ -76,6 +83,7 @@ export const runAnalysis = async (
     analysisMode: request.analysisMode,
     changeType: request.analysisMode === 'flood' ? 'Possible Flooding' : 'Candidate Surface Change',
     isDemoData: true,
+    dataSource: 'DEMO',
   };
 
   return { data: adapted, isLiveBackend: false };

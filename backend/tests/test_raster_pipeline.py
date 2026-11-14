@@ -160,8 +160,8 @@ def test_api_analyze_with_synthetic_and_demo_modes():
 # ---------------------------------------------------------------------------
 
 NISAR_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../sample-data/nisar"))
-NISAR_BEFORE = os.path.join(NISAR_DIR, "NISAR_L2_PR_GCOV_001_024_A_20260512T001422.h5")
-NISAR_AFTER  = os.path.join(NISAR_DIR, "NISAR_L2_PR_GCOV_001_024_A_20260624T001421.h5")
+NISAR_BEFORE = os.path.join(NISAR_DIR, "SYNTHETIC_NISAR_L2_PR_GCOV_001_024_A_20260512T001422.h5")
+NISAR_AFTER  = os.path.join(NISAR_DIR, "SYNTHETIC_NISAR_L2_PR_GCOV_001_024_A_20260624T001421.h5")
 
 
 def test_nisar_gcov_adapter_inspect_metadata():
@@ -221,7 +221,7 @@ def test_nisar_local_pipeline_detects_flood_zone():
 
 
 def test_api_nisar_local_location():
-    """POST /api/analyze with location='nisar_local' must return a real (non-demo) AnalysisResult."""
+    """POST /api/analyze with location='nisar_local' must return a non-demo AnalysisResult tagged as SYNTHETIC."""
     client = TestClient(app)
     resp = client.post(
         "/api/analyze",
@@ -237,6 +237,8 @@ def test_api_nisar_local_location():
     assert resp.status_code == 200
     data = resp.json()
     assert data["isDemoData"] is False
+    assert data["dataSource"] == "SYNTHETIC"
+    assert "SYNTHETIC TEST DATA" in data["location"]
     assert data["affectedAreaKm2"] > 0.0
     assert data["changeType"] == "Candidate Radar Surface Change"
     assert "NISAR" in data["rasterMetadata"].get("nisarMetadata", {}).get("mission", "")
