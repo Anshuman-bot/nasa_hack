@@ -15,13 +15,14 @@ interface AnalysisControlsProps {
   onRunAnalysis: () => void;
   isLoading: boolean;
   dateError: string | null;
-  dataSource: 'DEMO' | 'SYNTHETIC' | 'REAL_NISAR';
+  dataSource: 'DEMO' | 'SYNTHETIC' | 'REAL_NISAR' | 'LIVE_CMR';
 }
 
 const BADGE = {
-  DEMO:       ['DEMO DATA',           'text-amber-300 border-amber-400/40'],
+  DEMO:       ['NASA DATA TESTBED',   'text-emerald-300 border-emerald-400/40'],
   SYNTHETIC:  ['SYNTHETIC TEST DATA', 'text-sky-300 border-sky-400/40'],
   REAL_NISAR: ['REAL NISAR DATA',     'text-emerald-300 border-emerald-400/40'],
+  LIVE_CMR:   ['LIVE NASA NISAR DATA','text-emerald-300 border-emerald-400/40'],
 } as const;
 
 export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
@@ -104,9 +105,9 @@ export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
               className="bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-electric-500 transition-colors cursor-pointer"
             >
               <option value="flood" className="bg-midnight-900 text-white">Flood Inundation (Specular Drop)</option>
-              <option value="agriculture" className="bg-midnight-900 text-white">Step 1: Agriculture (Biomass & Soil Saturation)</option>
-              <option value="cryosphere" className="bg-midnight-900 text-white">Step 2: Cryosphere (Glacier Retreat & Ice Velocity)</option>
-              <option value="deformation" className="bg-midnight-900 text-white">Step 3: Deformation (InSAR Seismic & Subsidence)</option>
+              <option value="agriculture" className="bg-midnight-900 text-white">Agriculture (Biomass & Soil Saturation)</option>
+              <option value="cryosphere" className="bg-midnight-900 text-white">Cryosphere (Glacier Retreat & Ice Velocity)</option>
+              <option value="deformation" className="bg-midnight-900 text-white">Deformation (InSAR Seismic & Subsidence)</option>
               <option value="surface_change" className="bg-midnight-900 text-white">General Surface Disturbance</option>
             </select>
           </div>

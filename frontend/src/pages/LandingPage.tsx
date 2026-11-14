@@ -214,13 +214,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
             </div>
 
             <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-              <div className="text-xs font-mono text-acid-400 mb-3">02 / COREQUISITION</div>
+              <div className="text-xs font-mono text-acid-400 mb-3">02 / CO-REGISTRATION</div>
               <div className="flex items-center gap-2 text-white font-medium mb-2">
                 <GitCompare className="w-4 h-4 text-electric-400" />
                 <span>Compare</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Co-register baseline $t_0$ and event $t_1$ grids, computing log-ratio decibel deltas ($\Delta\sigma^0$).
+                Co-register baseline t₀ and event t₁ grids, computing log-ratio decibel deltas (Δσ⁰).
               </p>
             </div>
 

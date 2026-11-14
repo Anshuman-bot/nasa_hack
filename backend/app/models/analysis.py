@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 AnalysisMode = Literal['flood', 'surface_change', 'agriculture', 'cryosphere', 'deformation']
 ConfidenceLevel = Literal['High', 'Moderate', 'Low']
 ChangeIntensity = Literal['High', 'Moderate', 'Low', 'Subtle']
-DataSource = Literal['DEMO', 'SYNTHETIC', 'REAL_NISAR']
+DataSource = Literal['DEMO', 'SYNTHETIC', 'REAL_NISAR', 'LIVE_CMR']
 
 class TimelinePoint(BaseModel):
     id: str
