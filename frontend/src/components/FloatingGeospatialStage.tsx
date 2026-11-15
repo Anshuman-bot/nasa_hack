@@ -24,7 +24,7 @@ const REGIONS: FloatingRegion[] = [
     tag: 'FLOOD INUNDATION',
     metric: 'Δσ° < -7.5 dB Specular Loss',
     baseRotation: -8,
-    src: 'https://images.unsplash.com/photo-1544984243-ec57ea16fe25?auto=format&fit=crop&w=1000&q=80',
+    src: '/assam-brahmaputra.jpg',
     description: 'Braided river floodplains undergoing extreme seasonal monsoon inundation.',
   },
   {
@@ -36,7 +36,7 @@ const REGIONS: FloatingRegion[] = [
     tag: 'CRUSTAL STRAIN',
     metric: 'Creep Velocity: 2.8 mm / yr',
     baseRotation: 10,
-    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80',
+    src: '/california-san-andreas.jpg',
     description: 'Tectonic plate boundary displaying sub-centimeter fault creep.',
   },
   {
