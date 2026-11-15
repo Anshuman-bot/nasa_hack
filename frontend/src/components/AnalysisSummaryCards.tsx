@@ -37,32 +37,32 @@ export const AnalysisSummaryCards: React.FC<AnalysisSummaryCardsProps> = ({ data
         {/* Highlights Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
           <div>
-            <span className="text-[11px] font-medium text-slate-400 block">Change Type</span>
+            <span className="text-[11px] font-medium text-slate-400 block font-mono">CHANGE TYPE</span>
             <span className="text-sm font-semibold text-white flex items-center gap-1.5 mt-1">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+              <AlertTriangle className="w-3.5 h-3.5 text-yellow" />
               {data.changeType}
             </span>
           </div>
 
           <div>
-            <span className="text-[11px] font-medium text-slate-400 block">Affected Area</span>
-            <span className="text-xl font-bold text-white font-mono mt-0.5 block">
-              {data.affectedAreaKm2.toFixed(1)} <span className="text-xs font-normal text-slate-400">km²</span>
+            <span className="text-[11px] font-medium text-slate-400 block font-mono">AFFECTED AREA</span>
+            <span className="text-2xl font-anton text-yellow tracking-wide mt-0.5 block">
+              {data.affectedAreaKm2.toFixed(1)} <span className="text-xs font-mono text-slate-300">KM²</span>
             </span>
           </div>
 
           <div>
-            <span className="text-[11px] font-medium text-slate-400 block">Baseline Variance</span>
-            <span className="text-sm font-semibold text-electric-400 font-mono flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5 text-electric-400" />
+            <span className="text-[11px] font-medium text-slate-400 block font-mono">VARIANCE</span>
+            <span className="text-xl font-anton text-royal-400 tracking-wide flex items-center gap-1 mt-0.5">
+              <TrendingUp className="w-4 h-4 text-royal-400" />
               +{data.changePercent.toFixed(1)}%
             </span>
           </div>
 
           <div>
-            <span className="text-[11px] font-medium text-slate-400 block">Confidence</span>
-            <span className="text-sm font-semibold text-acid-300 font-mono flex items-center gap-1.5 mt-1">
-              <CheckCircle className="w-3.5 h-3.5 text-acid-400" />
+            <span className="text-[11px] font-medium text-slate-400 block font-mono">CONFIDENCE</span>
+            <span className="text-sm font-semibold text-yellow font-mono flex items-center gap-1.5 mt-1">
+              <CheckCircle className="w-3.5 h-3.5 text-yellow" />
               {data.confidence}
             </span>
           </div>
@@ -86,11 +86,11 @@ export const AnalysisSummaryCards: React.FC<AnalysisSummaryCardsProps> = ({ data
         {/* Card 2: Affected Area */}
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-colors">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-medium">Inundated Zone</span>
-            <TrendingUp className="w-3.5 h-3.5 text-electric-400" />
+            <span className="text-[11px] font-medium font-mono uppercase">INUNDATED ZONE</span>
+            <TrendingUp className="w-3.5 h-3.5 text-royal-400" />
           </div>
-          <div className="text-lg font-bold text-white font-mono">
-            {data.affectedAreaKm2} <span className="text-xs font-normal text-slate-400">km²</span>
+          <div className="text-2xl font-anton text-white tracking-wide">
+            {data.affectedAreaKm2} <span className="text-xs font-mono text-slate-400">KM²</span>
           </div>
           <div className="text-[10px] text-slate-500 mt-1">Connected component cluster</div>
         </div>
