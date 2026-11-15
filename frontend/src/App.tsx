@@ -66,8 +66,8 @@ export const App: React.FC = () => {
         isBackendConnected={isBackendConnected}
       />
 
-      {/* Page Routing */}
-      <main className="flex-1 flex flex-col">
+      {/* Page Routing - Offset by Navbar height (h-20 = 80px) */}
+      <main className="flex-1 flex flex-col pt-20">
         {currentPage === 'landing' ? (
           <LandingPage onLaunchMonitor={(locId) => handleLaunchDomain(locId || 'brahmaputra')} />
         ) : (
