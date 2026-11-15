@@ -5,17 +5,45 @@ interface ComparisonViewerProps {
   beforeDate: string;
   afterDate: string;
   locationName: string;
+  analysisMode?: string;
+  affectedAreaKm2?: number;
+  scientificMetrics?: {
+    beforeBackscatterDb: number;
+    afterBackscatterDb: number;
+    differenceDb: number;
+  };
 }
 
 export const ComparisonViewer: React.FC<ComparisonViewerProps> = ({
   beforeDate,
   afterDate,
   locationName,
+  analysisMode = 'flood',
+  affectedAreaKm2 = 38.4,
+  scientificMetrics,
 }) => {
   const [sliderPos, setSliderPos] = useState<number>(50); // percentage
   const [viewMode, setViewMode] = useState<'slider' | 'side-by-side'>('slider');
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef<boolean>(false);
+
+  // Compute scale and delta days to visually reflect time interval and domain dynamics
+  const computeDeltaDays = () => {
+    try {
+      const d0 = new Date(beforeDate).getTime();
+      const d1 = new Date(afterDate).getTime();
+      const days = Math.max(1, Math.round((d1 - d0) / (1000 * 60 * 60 * 24)));
+      return days;
+    } catch {
+      return 30;
+    }
+  };
+
+  const deltaDays = computeDeltaDays();
+  const timeScale = Math.min(2.2, Math.max(0.4, (deltaDays / 30) ** 0.6));
+
+  const beforeDb = scientificMetrics?.beforeBackscatterDb ?? -11.2;
+  const afterDb = scientificMetrics?.afterBackscatterDb ?? -18.7;
 
   const handlePointerDown = () => {
     isDragging.current = true;
@@ -33,77 +61,89 @@ export const ComparisonViewer: React.FC<ComparisonViewerProps> = ({
     setSliderPos(clamped);
   };
 
-  const renderSyntheticSAR = (isAfter: boolean) => (
-    <div className="w-full h-full relative bg-black overflow-hidden select-none">
-      <svg className="w-full h-full absolute inset-0 opacity-80" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id={`speckle-${isAfter ? 'after' : 'before'}`}>
-            <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" result="noise" />
-            <feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0" />
-          </filter>
-          <linearGradient id="terrainGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#1e293b" />
-            <stop offset="50%" stopColor="#334155" />
-            <stop offset="100%" stopColor="#0f172a" />
-          </linearGradient>
-        </defs>
+  const renderSyntheticSAR = (isAfter: boolean) => {
+    // Dynamically calculate river channel stroke width and plume scaling based on dates and area
+    const strokeWidth = isAfter ? Math.round(26 + 32 * timeScale) : 22;
+    const patchScale = isAfter ? Math.min(1.8, Math.max(0.6, timeScale)) : 1;
+    const currentBackscatter = isAfter ? afterDb : beforeDb;
 
-        <rect width="100%" height="100%" fill="url(#terrainGrad)" filter={`url(#speckle-${isAfter ? 'after' : 'before'})`} />
+    return (
+      <div className="w-full h-full relative bg-black overflow-hidden select-none">
+        <svg className="w-full h-full absolute inset-0 opacity-80" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id={`speckle-${isAfter ? 'after' : 'before'}`}>
+              <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" result="noise" />
+              <feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0" />
+            </filter>
+            <linearGradient id="terrainGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#1e293b" />
+              <stop offset="50%" stopColor="#334155" />
+              <stop offset="100%" stopColor="#0f172a" />
+            </linearGradient>
+          </defs>
 
-        <path d="M 50 40 L 180 50 L 160 140 L 40 120 Z" fill="#64748b" opacity="0.25" />
-        <path d="M 240 180 L 380 200 L 360 300 L 220 280 Z" fill="#64748b" opacity="0.2" />
+          <rect width="100%" height="100%" fill="url(#terrainGrad)" filter={`url(#speckle-${isAfter ? 'after' : 'before'})`} />
 
-        <path
-          d="M -10 160 Q 120 180 220 140 T 420 180 T 650 150"
-          fill="none"
-          stroke="#000000"
-          strokeWidth={isAfter ? "55" : "22"}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="transition-all duration-300"
-        />
+          <path d="M 50 40 L 180 50 L 160 140 L 40 120 Z" fill="#64748b" opacity="0.25" />
+          <path d="M 240 180 L 380 200 L 360 300 L 220 280 Z" fill="#64748b" opacity="0.2" />
 
-        {isAfter && (
-          <>
-            <path
-              d="M 120 140 Q 180 220 260 210 Q 230 150 160 130 Z"
-              fill="#030712"
-              stroke="#0f172a"
-              strokeWidth="2"
-            />
-            <path
-              d="M 320 170 Q 390 240 450 210 Q 420 160 360 160 Z"
-              fill="#030712"
-              stroke="#0f172a"
-              strokeWidth="2"
-            />
-            <path
-              d="M 120 140 Q 180 220 260 210 Q 230 150 160 130 Z"
-              fill="none"
-              stroke="#ef4444"
-              strokeWidth="1.5"
-              strokeDasharray="4 2"
-              opacity="0.85"
-            />
-          </>
-        )}
+          {/* Main water body / feature corridor scaled dynamically by elapsed dates */}
+          <path
+            d="M -10 160 Q 120 180 220 140 T 420 180 T 650 150"
+            fill="none"
+            stroke={analysisMode === 'agriculture' ? (isAfter ? '#10b981' : '#047857') : '#000000'}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="transition-all duration-300"
+          />
 
-        <line x1="20" y1="260" x2="80" y2="260" stroke="#a3e635" strokeWidth="2" />
-        <text x="20" y="252" fill="#a3e635" fontSize="9" fontFamily="monospace">5 km NISAR L-band</text>
-      </svg>
+          {isAfter && (
+            <g transform={`scale(${patchScale})`} transform-origin="250 180">
+              <path
+                d="M 120 140 Q 180 220 260 210 Q 230 150 160 130 Z"
+                fill={analysisMode === 'agriculture' ? '#064e3b' : '#030712'}
+                stroke="#0f172a"
+                strokeWidth="2"
+              />
+              <path
+                d="M 320 170 Q 390 240 450 210 Q 420 160 360 160 Z"
+                fill={analysisMode === 'agriculture' ? '#064e3b' : '#030712'}
+                stroke="#0f172a"
+                strokeWidth="2"
+              />
+              <path
+                d="M 120 140 Q 180 220 260 210 Q 230 150 160 130 Z"
+                fill="none"
+                stroke={analysisMode === 'agriculture' ? '#34d399' : '#ef4444'}
+                strokeWidth="1.5"
+                strokeDasharray="4 2"
+                opacity="0.85"
+              />
+            </g>
+          )}
 
-      <div className="absolute top-3.5 left-3.5 bg-black/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs">
-        <span className={isAfter ? 'text-acid-400 font-semibold' : 'text-white font-medium'}>
-          {isAfter ? 'After Observation' : 'Before Observation'}
-        </span>
-        <span className="text-slate-400 ml-2 font-mono">({isAfter ? afterDate : beforeDate})</span>
+          <line x1="20" y1="260" x2="80" y2="260" stroke="#a3e635" strokeWidth="2" />
+          <text x="20" y="252" fill="#a3e635" fontSize="9" fontFamily="monospace">5 km NISAR L-band ({deltaDays}d Baseline)</text>
+        </svg>
+
+        <div className="absolute top-3.5 left-3.5 bg-black/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs flex items-center gap-2">
+          <span className={isAfter ? 'text-acid-400 font-semibold' : 'text-white font-medium'}>
+            {isAfter ? 'Post-Event Radar' : 'Pre-Event Baseline'}
+          </span>
+          <span className="text-slate-400 font-mono">({isAfter ? afterDate : beforeDate})</span>
+        </div>
+
+        <div className="absolute bottom-3 right-3 bg-black/80 px-2.5 py-1 rounded-full text-[10px] font-mono text-slate-300 border border-white/10 flex items-center gap-2">
+          <span>σ⁰ Backscatter: <strong className={isAfter ? 'text-amber-300' : 'text-white'}>{currentBackscatter.toFixed(1)} dB</strong></span>
+          <span className="text-white/20">|</span>
+          <span>{isAfter ? `Active Area: ${affectedAreaKm2.toFixed(1)} km²` : `Baseline Grid`}</span>
+          <span className="text-white/20">|</span>
+          <span className="text-slate-400">Δt = {deltaDays}d</span>
+        </div>
       </div>
-
-      <div className="absolute bottom-3 right-3 bg-black/80 px-2.5 py-1 rounded-full text-[10px] font-mono text-slate-400 border border-white/10">
-        {isAfter ? 'HV Backscatter: -18.7 dB' : 'HV Backscatter: -11.2 dB'}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-white/[0.03] rounded-2xl border border-white/10 p-5 space-y-3.5">

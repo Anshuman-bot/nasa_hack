@@ -205,6 +205,9 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
                 beforeDate={currentAnalysis.beforeDate}
                 afterDate={currentAnalysis.afterDate}
                 locationName={currentAnalysis.location}
+                analysisMode={currentAnalysis.analysisMode}
+                affectedAreaKm2={currentAnalysis.affectedAreaKm2}
+                scientificMetrics={currentAnalysis.scientificMetrics}
               />
             ) : (
               <ChangeHeatmapViewer
