@@ -19,10 +19,10 @@ interface AnalysisControlsProps {
 }
 
 const BADGE = {
-  DEMO:       ['NASA DATA TESTBED',   'text-emerald-300 border-emerald-400/40'],
-  SYNTHETIC:  ['SYNTHETIC TEST DATA', 'text-sky-300 border-sky-400/40'],
-  REAL_NISAR: ['REAL NISAR DATA',     'text-emerald-300 border-emerald-400/40'],
-  LIVE_CMR:   ['LIVE NASA NISAR DATA','text-emerald-300 border-emerald-400/40'],
+  DEMO:       ['NASA DATA TESTBED',   'text-yellow border-yellow/40 bg-yellow/10'],
+  SYNTHETIC:  ['SYNTHETIC TEST DATA', 'text-royal-300 border-royal-400/40 bg-royal-950/40'],
+  REAL_NISAR: ['REAL NISAR DATA',     'text-yellow border-yellow/40 bg-yellow/10'],
+  LIVE_CMR:   ['LIVE NASA NISAR DATA','text-yellow border-yellow/40 bg-yellow/10'],
 } as const;
 
 export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
@@ -123,16 +123,16 @@ export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
           <button
             onClick={onRunAnalysis}
             disabled={isLoading || Boolean(dateError)}
-            className="w-full xl:w-auto px-7 py-2.5 rounded-full bg-electric-600 hover:bg-electric-500 disabled:bg-white/10 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs font-semibold tracking-wide uppercase flex items-center justify-center gap-2 shadow-electric-glow transition-all active:scale-95"
+            className="w-full xl:w-auto px-7 py-2.5 rounded-full bg-royal-600 hover:bg-royal-500 disabled:bg-white/10 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs font-anton tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(23,73,216,0.5)] transition-all active:scale-95"
           >
             {isLoading ? (
               <>
-                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>PROCESSING RADAR...</span>
+                <div className="w-3.5 h-3.5 border-2 border-yellow border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-yellow">PROCESSING RADAR...</span>
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 fill-white text-white" />
+                <Play className="w-3.5 h-3.5 fill-yellow text-yellow" />
                 <span>RUN ANALYSIS</span>
               </>
             )}
