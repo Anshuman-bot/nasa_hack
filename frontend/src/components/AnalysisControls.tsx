@@ -40,7 +40,7 @@ export const AnalysisControls: React.FC<AnalysisControlsProps> = ({
   dataSource,
 }) => {
   return (
-    <div className="bg-black/95 backdrop-blur-md border-b border-white/10 px-4 py-3.5 sticky top-20 z-[1100]">
+    <div className="bg-black/95 backdrop-blur-md border-b border-white/10 px-4 py-3.5 sticky top-20 sm:top-24 z-[1050]">
       <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
         {/* Controls Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">

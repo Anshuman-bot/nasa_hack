@@ -99,7 +99,6 @@ const SATELLITE_PANELS = [
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => {
   // Mouse parallax coordinates
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
-  const [sliderPosition, setSliderPosition] = useState<number>(50);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -432,132 +431,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
       </section>
 
       {/* =========================================================================
-          CHAPTER 03 — OBSERVE THE CHANGE (INTERACTIVE MULTI-TEMPORAL RADAR SLIDER)
-          ========================================================================= */}
-      <section id="dynamics" className="py-28 border-t border-white/10 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-14">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
-              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
-                CHAPTER 03 // QUANTITATIVE DYNAMICS
-              </div>
-              <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
-                SEEING CHANGE <br />
-                <span className="text-royal-400">IN BACKSCATTER DECIBELS.</span>
-              </h2>
-            </div>
-            <div className="font-mono text-xs text-slate-400 max-w-xs">
-              Drag the interactive slider below to inspect pre-event baseline radar amplitude against post-inundation specular attenuation.
-            </div>
-          </div>
-
-          {/* Interactive Multi-Temporal Comparator Box with Soft Rounded Corners */}
-          <div className="rounded-[22px] overflow-hidden border border-white/20 bg-royal-950/40 relative shadow-2xl">
-            {/* Top Toolbar */}
-            <div className="p-4 sm:p-6 bg-black/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-yellow text-black font-bold">
-                  TESTBED: BRAHMAPUTRA
-                </span>
-                <span className="text-slate-300">NISAR L-BAND DUAL-POL (HH/HV)</span>
-              </div>
-              <div className="flex items-center gap-4 text-slate-400">
-                <div>
-                  <span className="text-slate-500">t₀ BASELINE:</span> 2026-05-12
-                </div>
-                <div>
-                  <span className="text-yellow">t₁ EVENT:</span> 2026-06-24
-                </div>
-                <div className="text-royal-400 font-bold">&Delta;&sigma;&deg; &lt; -6.0 dB</div>
-              </div>
-            </div>
-
-            {/* Slider Comparison Visual Canvas */}
-            <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden select-none bg-black">
-              {/* After Image Layer (Event Scene with flood boundaries) */}
-              <div className="absolute inset-0">
-                <img
-                  src={SATELLITE_PANELS[0].src}
-                  alt="Post-event Inundated Scene"
-                  className="w-full h-full object-cover filter contrast-125 saturate-150 hue-rotate-15"
-                />
-                <div className="absolute inset-0 bg-royal-600/25 mix-blend-color" />
-                <div className="absolute top-6 right-6 bg-yellow text-black font-mono text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                  POST-EVENT (t₁): INUNDATED
-                </div>
-              </div>
-
-              {/* Before Image Layer (Clipped by slider position) */}
-              <div
-                className="absolute inset-0 overflow-hidden"
-                style={{ width: `${sliderPosition}%` }}
-              >
-                <img
-                  src={SATELLITE_PANELS[1].src}
-                  alt="Pre-event Dry Baseline Scene"
-                  className="w-full h-full object-cover max-w-none"
-                  style={{ width: '100vw' }}
-                />
-                <div className="absolute inset-0 bg-black/20" />
-                <div className="absolute top-6 left-6 bg-white/90 text-black font-mono text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                  PRE-EVENT (t₀): DRY BASELINE
-                </div>
-              </div>
-
-              {/* Center Divider Bar */}
-              <div
-                className="absolute top-0 bottom-0 w-1 bg-yellow shadow-[0_0_15px_#FFE500] cursor-ew-resize flex items-center justify-center"
-                style={{ left: `${sliderPosition}%` }}
-              >
-                <div className="w-8 h-8 rounded-full bg-yellow text-black flex items-center justify-center font-bold text-xs shadow-2xl">
-                  &harr;
-                </div>
-              </div>
-
-              {/* Native range input overlay for intuitive dragging */}
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={sliderPosition}
-                onChange={(e) => setSliderPosition(Number(e.target.value))}
-                className="absolute inset-0 opacity-0 cursor-ew-resize w-full h-full z-30"
-                aria-label="Multi-temporal radar slider"
-              />
-            </div>
-
-            {/* Bottom Analysis Metrics Strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-black/90 border-t border-white/10 font-mono">
-              <div className="space-y-1">
-                <div className="text-[10px] text-slate-500 uppercase">SURFACE CHANGE TYPE</div>
-                <div className="font-anton text-xl text-yellow">SPECULAR FLOODING</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-[10px] text-slate-500 uppercase">ESTIMATED EXTENT</div>
-                <div className="font-anton text-xl text-white">38.4 KM&sup2;</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-[10px] text-slate-500 uppercase">AMPLITUDE DELTA</div>
-                <div className="font-anton text-xl text-royal-400">-7.50 dB</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-[10px] text-slate-500 uppercase">CLASSIFICATION CONFIDENCE</div>
-                <div className="font-anton text-xl text-yellow">99.4% (HIGH)</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          CHAPTER 04 — REGIONS OF INTEREST (EDITORIAL GALLERY WITH DIRECT LAUNCH)
+          CHAPTER 03 — REGIONS OF INTEREST (EDITORIAL GALLERY WITH DIRECT LAUNCH)
           ========================================================================= */}
       <section id="regions" className="py-28 border-t border-white/10 bg-royal-950/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-8">
             <div className="space-y-2">
               <div className="font-mono text-xs text-yellow tracking-widest uppercase">
-                CHAPTER 04 // OPERATIONAL DOMAINS
+                CHAPTER 03 // OPERATIONAL DOMAINS
               </div>
               <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
                 TARGET REGIONS <br />
@@ -699,14 +580,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
       </section>
 
       {/* =========================================================================
-          CHAPTER 05 — THE TECHNOLOGY (SWISS TYPOGRAPHY & DETERMINISTIC RADAR PIPELINE)
+          CHAPTER 04 — THE TECHNOLOGY (SWISS TYPOGRAPHY & DETERMINISTIC RADAR PIPELINE)
           ========================================================================= */}
       <section id="technology" className="py-28 border-t border-white/10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             <div className="lg:col-span-8 space-y-3">
               <div className="font-mono text-xs text-yellow tracking-widest uppercase">
-                CHAPTER 05 // PHYSICAL METHODOLOGY
+                CHAPTER 04 // PHYSICAL METHODOLOGY
               </div>
               <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
                 MICROWAVE PHYSICS. <br />
@@ -764,7 +645,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
       </section>
 
       {/* =========================================================================
-          CHAPTER 06 — FINAL EXPERIENCE & PROJECT TEAM
+          CHAPTER 05 — FINAL EXPERIENCE & PROJECT TEAM
           ========================================================================= */}
       <section id="contact" className="py-28 border-t border-white/10 relative bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-20">
@@ -772,7 +653,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
           <div className="p-8 sm:p-14 rounded-[28px] bg-royal-600 text-white relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl z-10">
               <div className="font-mono text-xs uppercase tracking-widest text-yellow font-bold">
-                CHAPTER 06 // EMBARK INTO ORBIT
+                CHAPTER 05 // EMBARK INTO ORBIT
               </div>
               <h2 className="font-anton text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
                 STEP INTO THE RADAR STREAM.

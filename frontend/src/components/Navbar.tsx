@@ -61,28 +61,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               02 // PLANET
             </button>
             <button
-              onClick={() => scrollToChapter('dynamics')}
-              className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
-            >
-              03 // CHANGE
-            </button>
-            <button
               onClick={() => scrollToChapter('regions')}
               className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
             >
-              04 // REGIONS
+              03 // REGIONS
             </button>
             <button
               onClick={() => scrollToChapter('technology')}
               className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
             >
-              05 // RADAR
+              04 // RADAR
             </button>
             <button
               onClick={() => scrollToChapter('contact')}
               className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
             >
-              06 // TEAM
+              05 // TEAM
             </button>
           </nav>
 
@@ -155,31 +149,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="font-mono text-xs text-slate-500">GLOBAL</span>
               </button>
               <button
-                onClick={() => scrollToChapter('dynamics')}
-                className="text-left hover:text-yellow transition-colors flex items-center justify-between"
-              >
-                <span>03 // OBSERVE CHANGE</span>
-                <span className="font-mono text-xs text-slate-500">RADAR DELTA</span>
-              </button>
-              <button
                 onClick={() => scrollToChapter('regions')}
                 className="text-left hover:text-yellow transition-colors flex items-center justify-between"
               >
-                <span>04 // REGIONS OF INTEREST</span>
+                <span>03 // REGIONS OF INTEREST</span>
                 <span className="font-mono text-xs text-slate-500">GEOJSON</span>
               </button>
               <button
                 onClick={() => scrollToChapter('technology')}
                 className="text-left hover:text-yellow transition-colors flex items-center justify-between"
               >
-                <span>05 // THE TECHNOLOGY</span>
+                <span>04 // THE TECHNOLOGY</span>
                 <span className="font-mono text-xs text-slate-500">SAR PHYSICS</span>
               </button>
               <button
                 onClick={() => scrollToChapter('contact')}
                 className="text-left hover:text-yellow transition-colors flex items-center justify-between"
               >
-                <span>06 // TEAM &amp; CONTACT</span>
+                <span>05 // TEAM &amp; CONTACT</span>
                 <span className="font-mono text-xs text-slate-500">CREDITS</span>
               </button>
             </div>
