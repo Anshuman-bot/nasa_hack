@@ -123,7 +123,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
           ========================================================================= */}
       <section
         id="hero"
-        className="relative min-h-screen pt-28 sm:pt-36 pb-20 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between"
+        className="relative min-h-[calc(100vh-5rem)] pt-8 sm:pt-12 pb-16 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between"
       >
         {/* Ambient Royal Blue Backdrop Glow */}
         <div
