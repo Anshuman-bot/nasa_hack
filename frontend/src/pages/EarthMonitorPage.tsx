@@ -14,15 +14,17 @@ import { WifiOff } from 'lucide-react';
 
 interface EarthMonitorPageProps {
   initialData: AnalysisResult;
+  initialLocation?: string;
   isBackendConnected: boolean;
 }
 
 export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
   initialData,
+  initialLocation,
   isBackendConnected,
 }) => {
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult>(initialData);
-  const [selectedLocation, setSelectedLocation] = useState<string>(initialData.locationCode);
+  const [selectedLocation, setSelectedLocation] = useState<string>(initialLocation || initialData.locationCode);
   const [beforeDate, setBeforeDate] = useState<string>(initialData.beforeDate);
   const [afterDate, setAfterDate] = useState<string>(initialData.afterDate);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(initialData.analysisMode);
@@ -36,6 +38,13 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
     afterLayer: false,
     detectedChange: true,
   });
+
+  // Run initial analysis on mount or whenever initialLocation changes from Landing Page selection
+  React.useEffect(() => {
+    if (initialLocation) {
+      handleLocationChange(initialLocation);
+    }
+  }, [initialLocation]);
 
   const getDateError = (): string | null => {
     if (!beforeDate || !afterDate) return 'Both observation dates are required.';

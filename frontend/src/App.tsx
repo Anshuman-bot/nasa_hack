@@ -10,6 +10,12 @@ export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'landing' | 'monitor'>('landing');
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [analysisData, setAnalysisData] = useState<AnalysisResult>(DEFAULT_ANALYSIS_RESULT);
+  const [initialLocation, setInitialLocation] = useState<string>('brahmaputra');
+
+  const handleLaunchDomain = (locationId: string) => {
+    setInitialLocation(locationId);
+    setCurrentPage('monitor');
+  };
 
   useEffect(() => {
     // Health check on start
@@ -43,10 +49,11 @@ export const App: React.FC = () => {
       />
 
       {currentPage === 'landing' ? (
-        <LandingPage onLaunchMonitor={() => setCurrentPage('monitor')} />
+        <LandingPage onLaunchMonitor={(locId) => handleLaunchDomain(locId || 'brahmaputra')} />
       ) : (
         <EarthMonitorPage
           initialData={analysisData}
+          initialLocation={initialLocation}
           isBackendConnected={isBackendConnected}
         />
       )}

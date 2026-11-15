@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 interface LandingPageProps {
-  onLaunchMonitor: () => void;
+  onLaunchMonitor: (locationId?: string) => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => {
@@ -59,7 +59,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
             {/* CTA Button (Matching reference: Blue pill with arrow) */}
             <div className="pt-2">
               <button
-                onClick={onLaunchMonitor}
+                onClick={() => onLaunchMonitor()}
                 className="px-8 py-3.5 rounded-full bg-electric-600 hover:bg-electric-500 text-white font-medium text-sm sm:text-base flex items-center gap-2.5 shadow-electric-glow transition-all hover:gap-3.5 active:scale-95"
               >
                 <span>Get Started</span>
@@ -299,7 +299,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
 
               <div className="pt-4">
                 <button
-                  onClick={onLaunchMonitor}
+                  onClick={() => onLaunchMonitor()}
                   className="px-6 py-2.5 rounded-full border border-white/20 hover:border-white/40 text-sm font-medium text-white flex items-center gap-2 hover:bg-white/5 transition-all"
                 >
                   <span>Launch Earth Monitor</span>
@@ -308,41 +308,114 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
               </div>
             </div>
 
-            {/* Application Cards Grid */}
-            <div className="lg:col-span-6 grid grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl bg-white/[0.03] border border-electric-500/40 relative overflow-hidden">
-                <div className="absolute top-3 right-3 text-[10px] font-mono px-2 py-0.5 rounded-full bg-acid-400/10 text-acid-400 border border-acid-400/30">
-                  Active (M1)
+            {/* Application Cards Grid — All 4 Domains Live & Interactive */}
+            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Domain 1: Floods & Water */}
+              <div 
+                onClick={() => onLaunchMonitor('brahmaputra')}
+                className="p-5 rounded-2xl bg-white/[0.03] border border-electric-500/40 hover:border-electric-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-electric-950/40"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-electric-500/10 border border-electric-500/20 flex items-center justify-center text-electric-400 group-hover:bg-electric-500/20 transition-colors">
+                    <Waves className="w-5 h-5 text-electric-400" />
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ACTIVE
+                  </span>
                 </div>
-                <Waves className="w-7 h-7 text-electric-400 mb-3" />
-                <h4 className="text-base font-semibold text-white">Floods & Water</h4>
+                <h4 className="text-base font-semibold text-white group-hover:text-electric-300 transition-colors flex items-center justify-between">
+                  <span>Floods & Water</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-electric-400" />
+                </h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Surface inundation, river overflows, and specular attenuation mapping.
+                  Surface inundation, river overflows, and specular attenuation mapping via NISAR L2 GCOV.
                 </p>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <span>Assam & Mississippi</span>
+                  <span className="text-electric-400">Launch &rarr;</span>
+                </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-                <Sprout className="w-7 h-7 text-slate-400 mb-3" />
-                <h4 className="text-base font-semibold text-slate-200">Agriculture</h4>
+              {/* Domain 2: Agriculture */}
+              <div 
+                onClick={() => onLaunchMonitor('central_valley_ag')}
+                className="p-5 rounded-2xl bg-white/[0.03] border border-emerald-500/40 hover:border-emerald-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-emerald-950/40"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                    <Sprout className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ACTIVE
+                  </span>
+                </div>
+                <h4 className="text-base font-semibold text-white group-hover:text-emerald-300 transition-colors flex items-center justify-between">
+                  <span>Agriculture</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-emerald-400" />
+                </h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Crop growth cycles, soil saturation, and vegetation biomass variation.
+                  Crop growth phenology, soil saturation, and vegetation biomass variation via NISAR L3 SME2.
                 </p>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <span>San Joaquin Valley</span>
+                  <span className="text-emerald-400">Launch &rarr;</span>
+                </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-                <Mountain className="w-7 h-7 text-slate-400 mb-3" />
-                <h4 className="text-base font-semibold text-slate-200">Cryosphere</h4>
+              {/* Domain 3: Cryosphere */}
+              <div 
+                onClick={() => onLaunchMonitor('jakobshavn_cryo')}
+                className="p-5 rounded-2xl bg-white/[0.03] border border-cyan-500/40 hover:border-cyan-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-cyan-950/40"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+                    <Mountain className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    ACTIVE
+                  </span>
+                </div>
+                <h4 className="text-base font-semibold text-white group-hover:text-cyan-300 transition-colors flex items-center justify-between">
+                  <span>Cryosphere</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-cyan-400" />
+                </h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Glacial terminus retreat, ice sheet velocity flow, and seasonal melt.
+                  Glacial terminus retreat, ice sheet velocity flow, and seasonal melt tracked via polarimetric SAR.
                 </p>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <span>Jakobshavn Isbræ</span>
+                  <span className="text-cyan-400">Launch &rarr;</span>
+                </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-                <Zap className="w-7 h-7 text-slate-400 mb-3" />
-                <h4 className="text-base font-semibold text-slate-200">Deformation</h4>
+              {/* Domain 4: Deformation */}
+              <div 
+                onClick={() => onLaunchMonitor('san_andreas_def')}
+                className="p-5 rounded-2xl bg-white/[0.03] border border-purple-500/40 hover:border-purple-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-purple-950/40"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/20 transition-colors">
+                    <Zap className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-400/10 text-purple-400 border border-purple-400/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                    ACTIVE
+                  </span>
+                </div>
+                <h4 className="text-base font-semibold text-white group-hover:text-purple-300 transition-colors flex items-center justify-between">
+                  <span>Deformation</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-purple-400" />
+                </h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Interferometric phase correlation for seismic slip and subsidence.
+                  Interferometric phase correlation for seismic fault creep and subsidence via NISAR L2 GUNW.
                 </p>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <span>San Andreas Fault</span>
+                  <span className="text-purple-400">Launch &rarr;</span>
+                </div>
               </div>
             </div>
           </div>
