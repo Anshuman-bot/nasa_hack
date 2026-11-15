@@ -1,420 +1,429 @@
-import React from 'react';
-import { 
-  ArrowRight, 
-  Satellite, 
-  BarChart2, 
-  ShieldCheck, 
-  CloudRain, 
-  SunMedium, 
-  Clock, 
-  Waves, 
-  Eye, 
-  GitCompare, 
-  Crosshair, 
-  BarChart3, 
-  BrainCircuit, 
-  Sprout, 
-  Mountain, 
-  Zap, 
-  CheckCircle2, 
-  Layers,
-  Mail
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  ArrowRight,
+  Waves,
+  Mountain,
+  Sprout,
+  Zap,
+  Mail,
+  ChevronDown,
 } from 'lucide-react';
+import { FloatingGeospatialStage } from '../components/FloatingGeospatialStage';
 
 interface LandingPageProps {
   onLaunchMonitor: (locationId?: string) => void;
 }
 
+// Curated Earth-Observation Imagery with authentic coordinates and metadata
+const SATELLITE_PANELS = [
+  {
+    id: 'brahmaputra',
+    title: 'Brahmaputra River Corridor',
+    country: 'Assam, India',
+    coordinates: '26.18° N, 91.75° E',
+    sensor: 'NISAR L-band SAR // GCOV',
+    aspect: 'aspect-[4/3]',
+    src: 'https://images.unsplash.com/photo-1544984243-ec57ea16fe25?auto=format&fit=crop&w=1200&q=80',
+    description: 'Braided river floodplains undergoing seasonal monsoon inundation.',
+    rotation: '-rotate-1',
+    layer: 'z-20',
+    tag: 'FLOOD INUNDATION',
+  },
+  {
+    id: 'san_andreas_def',
+    title: 'San Andreas Fault Zone',
+    country: 'California, USA',
+    coordinates: '35.12° N, 119.65° W',
+    sensor: 'InSAR Phase Correlation // GUNW',
+    aspect: 'aspect-[16/10]',
+    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+    description: 'Tectonic boundary showing millimeter-scale crustal strain and creep.',
+    rotation: 'rotate-2',
+    layer: 'z-10',
+    tag: 'CRUSTAL DEFORMATION',
+  },
+  {
+    id: 'himalayas',
+    title: 'Himalayan High Topography',
+    country: 'Nepal & Tibet',
+    coordinates: '27.98° N, 86.92° E',
+    sensor: 'Terra ASTER & L-SAR Dual-Pol',
+    aspect: 'aspect-[3/4]',
+    src: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80',
+    description: 'High-altitude cryospheric glaciers and debris-covered tongues.',
+    rotation: '-rotate-2',
+    layer: 'z-20',
+    tag: 'GLACIAL DYNAMICS',
+  },
+  {
+    id: 'amazon',
+    title: 'Amazon River Basin',
+    country: 'Amazonas, Brazil',
+    coordinates: '3.46° S, 62.21° W',
+    sensor: 'Sentinel-1 Dual-Pol & L-band Penetration',
+    aspect: 'aspect-square',
+    src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80',
+    description: 'Densely forested drainage network with sub-canopy water scattering.',
+    rotation: 'rotate-1',
+    layer: 'z-10',
+    tag: 'HYDROLOGY',
+  },
+  {
+    id: 'jakobshavn_cryo',
+    title: 'Jakobshavn Isbræ Ice Stream',
+    country: 'West Greenland',
+    coordinates: '69.17° N, 50.05° W',
+    sensor: 'Repeat-Pass SAR Interferometry',
+    aspect: 'aspect-[4/3]',
+    src: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1000&q=80',
+    description: 'Fastest flowing ice sheet glacier calving into Ilulissat Icefjord.',
+    rotation: 'rotate-1',
+    layer: 'z-30',
+    tag: 'CRYOSPHERE FLOW',
+  },
+  {
+    id: 'sahara',
+    title: 'Richat Structure // Sahara',
+    country: 'Mauritania',
+    coordinates: '21.12° N, 11.40° W',
+    sensor: 'Landsat 8 OLI & ALOS PALSAR',
+    aspect: 'aspect-[16/9]',
+    src: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80',
+    description: 'Deeply eroded 40-km circular geological dome in hyper-arid terrain.',
+    rotation: '-rotate-1',
+    layer: 'z-10',
+    tag: 'GEOLOGY',
+  },
+];
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => {
+  // Mouse parallax coordinates
+  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const [sliderPosition, setSliderPosition] = useState<number>(50);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX / innerWidth - 0.5) * 20;
+      const y = (e.clientY / innerHeight - 0.5) * 20;
+      setMouseOffset({ x, y });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-black text-slate-100 font-sans selection:bg-electric-600 selection:text-white">
-      {/* HERO SECTION (Faithful to Reference Image) */}
-      <section className="relative min-h-[calc(100vh-5rem)] flex flex-col justify-between overflow-hidden px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-8 sm:pt-14 pb-12">
-        {/* Main Content Split: Left Copy & Right Earth Globe */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center flex-1">
-          {/* Left Column (Text & CTAs) */}
-          <div className="lg:col-span-6 z-10 space-y-6 pt-4 sm:pt-8">
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-acid-400 shadow-acid-glow"></span>
-              <span>Geospatial Intelligence Platform</span>
+    <div
+      ref={containerRef}
+      className="bg-black text-white min-h-screen font-sans selection:bg-yellow selection:text-black overflow-x-hidden"
+    >
+      {/* =========================================================================
+          CHAPTER 01 — EXPLORE // HERO SECTION (UNCONVENTIONAL EDITORIAL COMPOSITION)
+          ========================================================================= */}
+      <section
+        id="hero"
+        className="relative min-h-screen pt-28 sm:pt-36 pb-20 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between"
+      >
+        {/* Ambient Royal Blue Backdrop Glow */}
+        <div
+          className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] bg-royal-600/20 rounded-full blur-[140px] pointer-events-none"
+          style={{
+            transform: `translate3d(${mouseOffset.x * 1.5}px, ${mouseOffset.y * 1.5}px, 0)`,
+          }}
+        />
+
+        {/* Top Editorial Index & Spatial Telemetry Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-yellow">
+              <span className="w-2.5 h-2.5 rounded-full bg-yellow shadow-[0_0_8px_#FFE500]"></span>
+              <span>CHAPTER 01 // ORBITAL ENTRY</span>
+            </div>
+            <div className="font-mono text-xs text-slate-400">
+              NISAR DUAL-POL L-BAND (1.25 GHz) &bull; CONTINUOUS GLOBAL REPEAT CYCLE
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6 font-mono text-xs text-slate-400">
+            <div>
+              <span className="text-yellow">COORDS:</span> 26.18&deg;N 91.75&deg;E
+            </div>
+            <div>
+              <span className="text-royal-400">ALTITUDE:</span> 747 KM
+            </div>
+            <div className="hidden sm:block">
+              <span className="text-white">POL:</span> HH + HV
+            </div>
+          </div>
+        </div>
+
+        {/* Central Asymmetric Editorial Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center my-auto py-10">
+          {/* Left Column: Monumental Anton Typography */}
+          <div className="lg:col-span-7 z-20 space-y-6">
+            <div className="inline-block px-3 py-1 rounded-md bg-royal-600 text-white font-mono text-xs font-semibold tracking-wider">
+              EXPERIMENTAL EARTH OBSERVATION
             </div>
 
-            {/* Main Headline (Exact phrasing from reference) */}
-            <h1 className="text-5xl sm:text-6xl xl:text-7xl font-bold tracking-tight text-white font-sans leading-[1.08]">
-              Terracan<br />
-              See Deeper. <span className="text-electric-500">Plan Smarter</span><span className="text-acid-400">.</span>
+            {/* Oversized Anton Headline */}
+            <h1 className="font-anton text-6xl sm:text-7xl md:text-8xl xl:text-9xl text-white tracking-tight leading-[0.88] select-none">
+              THE EARTH <br />
+              <span className="text-yellow">NEVER STOPS</span> <br />
+              <span className="text-transparent text-stroke-white hover:text-white transition-colors duration-500">
+                TELLING
+              </span>{' '}
+              <span className="text-royal-400">STORIES.</span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-lg sm:text-xl text-slate-400 max-w-xl font-normal leading-relaxed">
-              Advanced satellite insights for a safer, smarter and more secure tomorrow.
+            {/* Editorial Paragraph */}
+            <p className="text-slate-300 text-base sm:text-lg max-w-xl font-normal leading-relaxed">
+              Optical satellites are blinded by monsoon cloud decks and darkness. Active microwave
+              radar pierces atmospheric veils to uncover tectonic deformation, glacial collapse, and
+              catastrophic flood frontiers in millimeter precision.
             </p>
 
-            {/* Contextual Space Apps NISAR note */}
-            <p className="text-xs text-slate-500 max-w-lg leading-normal font-sans">
-              Transforming NASA–ISRO NISAR synthetic aperture radar (SAR) microwave observations into high-precision surface-change intelligence.
-            </p>
-
-            {/* CTA Button (Matching reference: Blue pill with arrow) */}
-            <div className="pt-2">
+            {/* Interactive Launch Action */}
+            <div className="pt-4 flex flex-wrap items-center gap-4">
               <button
-                onClick={() => onLaunchMonitor()}
-                className="px-8 py-3.5 rounded-full bg-electric-600 hover:bg-electric-500 text-white font-medium text-sm sm:text-base flex items-center gap-2.5 shadow-electric-glow transition-all hover:gap-3.5 active:scale-95"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4 text-white" />
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: High-fidelity Curved Earth Globe from Reference */}
-          <div className="lg:col-span-6 relative flex items-center justify-center lg:justify-end select-none">
-            {/* Ambient atmospheric glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/3 -translate-y-1/2 w-[380px] sm:w-[520px] h-[380px] sm:h-[520px] bg-electric-600/15 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div className="relative w-full max-w-[560px] aspect-[4/3] rounded-2xl overflow-hidden">
-              <img
-                src="/earth-globe.png"
-                alt="Earth night view from orbit with glowing city lights"
-                className="w-full h-full object-cover object-center scale-105"
-              />
-              {/* Subtle edge blend overlay to seamlessly melt into pure black background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/20 to-transparent pointer-events-none"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* BOTTOM FEATURE BAR (Exact 3-column structure from reference image) */}
-        <div className="pt-12 sm:pt-16 mt-8 border-t border-white/10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {/* Feature 1: Real-Time Insights */}
-            <div className="flex items-center gap-4.5 p-2 md:border-r md:border-white/10 last:border-0">
-              <div className="w-11 h-11 rounded-lg bg-electric-600/15 border border-electric-500/25 flex items-center justify-center text-electric-400 shrink-0">
-                <Satellite className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-white tracking-tight">Real-Time Insights</h3>
-                <p className="text-xs text-slate-400 mt-0.5">From space to your screen</p>
-              </div>
-            </div>
-
-            {/* Feature 2: Actionable Analytics */}
-            <div className="flex items-center gap-4.5 p-2 md:border-r md:border-white/10 last:border-0">
-              <div className="w-11 h-11 rounded-lg bg-electric-600/15 border border-electric-500/25 flex items-center justify-center text-electric-400 shrink-0">
-                <BarChart2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-white tracking-tight">Actionable Analytics</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Turn data into decisions</p>
-              </div>
-            </div>
-
-            {/* Feature 3: Mission-Driven */}
-            <div className="flex items-center gap-4.5 p-2">
-              <div className="w-11 h-11 rounded-lg bg-electric-600/15 border border-electric-500/25 flex items-center justify-center text-electric-400 shrink-0">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-white tracking-tight">Mission-Driven</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Built for a safer tomorrow</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 2: WHY SYNTHETIC APERTURE RADAR (Sleek SaaS Cards) */}
-      <section id="technology" className="py-24 border-t border-white/10 bg-midnight-900/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mb-16">
-            <div className="inline-flex items-center gap-2 text-xs font-mono text-acid-400 uppercase tracking-widest mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-acid-400"></span>
-              <span>Physical Capabilities</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-              Why Synthetic Aperture Radar?
-            </h2>
-            <p className="text-slate-400 mt-3 text-sm sm:text-base leading-relaxed">
-              Unlike optical satellites blinded by weather and nocturnal cycles, active microwave radar penetrates darkness and atmosphere to illuminate Earth&rsquo;s physical surface.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-electric-500/50 transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-electric-600/20 text-electric-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <SunMedium className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-semibold text-white mb-2">Works day and night</h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                Emits active microwave pulses independent of solar illumination for continuous 24/7 global surveillance.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-electric-500/50 transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-electric-600/20 text-electric-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <CloudRain className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-semibold text-white mb-2">Observes through clouds</h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                L-band microwaves (24 cm wavelength) penetrate dense storm clouds, heavy monsoon rain, and smoke.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-electric-500/50 transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-electric-600/20 text-electric-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Waves className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-semibold text-white mb-2">Dynamic surface contrast</h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                Smooth water scatters radar specularly away, generating sharp dark boundaries against rough ground terrain.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-electric-500/50 transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-electric-600/20 text-electric-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Clock className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-semibold text-white mb-2">Repeat-pass monitoring</h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                Precise 12-day orbital cycles enable rigorous baseline comparison and quantitative multi-temporal change detection.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3: HOW TERRASCAN WORKS (5-Stage Pipeline) */}
-      <section className="py-24 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mb-16">
-            <div className="inline-flex items-center gap-2 text-xs font-mono text-electric-400 uppercase tracking-widest mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-electric-400"></span>
-              <span>Scientific Methodology</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-              How TerraScan Works
-            </h2>
-            <p className="text-slate-400 mt-3 text-sm sm:text-base leading-relaxed">
-              A 5-stage deterministic pipeline translating complex SAR backscatter matrices into verified geospatial intelligence.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-              <div className="text-xs font-mono text-acid-400 mb-3">01 / ACQUISITION</div>
-              <div className="flex items-center gap-2 text-white font-medium mb-2">
-                <Eye className="w-4 h-4 text-electric-400" />
-                <span>Observe</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Ingest repeat-pass NISAR L-band dual-pol (HH/HV) geocoded covariance (GCOV) radar scenes.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-              <div className="text-xs font-mono text-acid-400 mb-3">02 / CO-REGISTRATION</div>
-              <div className="flex items-center gap-2 text-white font-medium mb-2">
-                <GitCompare className="w-4 h-4 text-electric-400" />
-                <span>Compare</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Co-register baseline t₀ and event t₁ grids, computing log-ratio decibel deltas (Δσ⁰).
-              </p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-              <div className="text-xs font-mono text-acid-400 mb-3">03 / THRESHOLDING</div>
-              <div className="flex items-center gap-2 text-white font-medium mb-2">
-                <Crosshair className="w-4 h-4 text-acid-400" />
-                <span>Detect</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Filter radar speckle noise and apply bimodal thresholding to isolate candidate surface disturbance.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-              <div className="text-xs font-mono text-acid-400 mb-3">04 / POLYGONIZATION</div>
-              <div className="flex items-center gap-2 text-white font-medium mb-2">
-                <BarChart3 className="w-4 h-4 text-electric-400" />
-                <span>Quantify</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Extract connected GeoJSON boundaries, calculating inundated square kilometers and percentage deviation.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
-              <div className="text-xs font-mono text-acid-400 mb-3">05 / DECISION SUPPORT</div>
-              <div className="flex items-center gap-2 text-white font-medium mb-2">
-                <BrainCircuit className="w-4 h-4 text-electric-400" />
-                <span>Understand</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Synthesize transparent physics metrics and conservative intelligence for emergency authorities.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: SOLUTIONS & ROADMAP */}
-      <section id="solutions" className="py-24 border-t border-white/10 bg-midnight-900/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 text-xs font-mono text-acid-400 uppercase tracking-widest">
-                <Layers className="w-3.5 h-3.5" />
-                <span>Extensible Surface Change Platform</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-                From Local Inundation to Planetary Scale Monitoring
-              </h2>
-              <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-                Engineered for rapid flood response today, the TerraScan architecture is structured with clean service boundaries to ingest multi-frequency SAR for global environmental tracking.
-              </p>
-              
-              <div className="space-y-3.5 pt-2">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-acid-400 mt-1 shrink-0" />
-                  <p className="text-sm text-slate-300">
-                    <strong className="text-white">Hydrology & Wetlands:</strong> Sub-canopy water detection leveraging NISAR L-band forest canopy penetration.
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-acid-400 mt-1 shrink-0" />
-                  <p className="text-sm text-slate-300">
-                    <strong className="text-white">Agriculture & Soil Moisture:</strong> Soil dielectric permittivity tracking for drought and irrigation anomalies.
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-acid-400 mt-1 shrink-0" />
-                  <p className="text-sm text-slate-300">
-                    <strong className="text-white">Cryosphere & Geohazards:</strong> Glacier velocity tracking and millimeter-scale InSAR ground deformation.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button
-                  onClick={() => onLaunchMonitor()}
-                  className="px-6 py-2.5 rounded-full border border-white/20 hover:border-white/40 text-sm font-medium text-white flex items-center gap-2 hover:bg-white/5 transition-all"
-                >
-                  <span>Launch Earth Monitor</span>
-                  <ArrowRight className="w-4 h-4 text-acid-400" />
-                </button>
-              </div>
-            </div>
-
-            {/* Application Cards Grid — All 4 Domains Live & Interactive */}
-            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Domain 1: Floods & Water */}
-              <div 
                 onClick={() => onLaunchMonitor('brahmaputra')}
-                className="p-5 rounded-2xl bg-white/[0.03] border border-electric-500/40 hover:border-electric-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-electric-950/40"
+                className="px-8 py-4 rounded-full bg-yellow hover:bg-yellow-300 text-black font-anton text-base sm:text-lg tracking-wider flex items-center gap-3 transition-all duration-300 shadow-[0_0_30px_rgba(255,229,0,0.4)] active:scale-95"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-electric-500/10 border border-electric-500/20 flex items-center justify-center text-electric-400 group-hover:bg-electric-500/20 transition-colors">
-                    <Waves className="w-5 h-5 text-electric-400" />
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    ACTIVE
-                  </span>
+                <span>ENTER PLATFORM</span>
+                <ArrowRight className="w-5 h-5 text-black" />
+              </button>
+
+              <a
+                href="#planet"
+                className="px-6 py-4 rounded-full border border-white/20 hover:border-yellow text-white font-mono text-xs tracking-wider flex items-center gap-2 hover:bg-white/5 transition-all"
+              >
+                <span>EXPLORE STORIES</span>
+                <ChevronDown className="w-4 h-4 text-yellow" />
+              </a>
+            </div>
+          </div>
+
+          {/* Right Column: Floating Asymmetric Satellite Image Panels with Soft Corners */}
+          <div className="lg:col-span-5 relative min-h-[420px] sm:min-h-[520px] flex items-center justify-center select-none">
+            {/* Primary Main Floating Window: Brahmaputra River Corridor */}
+            <div
+              onClick={() => onLaunchMonitor('brahmaputra')}
+              className="relative w-full max-w-[420px] rounded-[20px] overflow-hidden border border-white/15 bg-royal-950/80 shadow-2xl transition-all duration-500 hover:scale-[1.03] hover:border-yellow group cursor-pointer animate-float-slow z-20"
+              style={{
+                transform: `translate3d(${mouseOffset.x * -1}px, ${mouseOffset.y * -1}px, 0)`,
+              }}
+            >
+              <div className="aspect-[4/3] w-full overflow-hidden relative">
+                <img
+                  src={SATELLITE_PANELS[0].src}
+                  alt={SATELLITE_PANELS[0].title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+                {/* Yellow Location Label */}
+                <div className="absolute top-4 left-4 flex items-center gap-2 bg-yellow text-black px-3 py-1 rounded-full font-mono text-[11px] font-bold shadow-md">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                  <span>{SATELLITE_PANELS[0].country}</span>
                 </div>
-                <h4 className="text-base font-semibold text-white group-hover:text-electric-300 transition-colors flex items-center justify-between">
-                  <span>Floods & Water</span>
-                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-electric-400" />
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Surface inundation, river overflows, and specular attenuation mapping via NISAR L2 GCOV.
-                </p>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                  <span>Assam & Mississippi</span>
-                  <span className="text-electric-400">Launch &rarr;</span>
+
+                <div className="absolute top-4 right-4 bg-royal-600/90 text-white font-mono text-[10px] px-2.5 py-1 rounded-full border border-white/20">
+                  {SATELLITE_PANELS[0].tag}
                 </div>
               </div>
 
-              {/* Domain 2: Agriculture */}
-              <div 
-                onClick={() => onLaunchMonitor('central_valley_ag')}
-                className="p-5 rounded-2xl bg-white/[0.03] border border-emerald-500/40 hover:border-emerald-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-emerald-950/40"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
-                    <Sprout className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    ACTIVE
-                  </span>
+              {/* Bottom Metadata Band */}
+              <div className="p-4 space-y-1 bg-black/90 border-t border-white/10">
+                <div className="flex justify-between items-baseline">
+                  <h3 className="font-anton text-lg text-white group-hover:text-yellow transition-colors">
+                    {SATELLITE_PANELS[0].title}
+                  </h3>
+                  <span className="font-mono text-xs text-yellow">26.18&deg; N</span>
                 </div>
-                <h4 className="text-base font-semibold text-white group-hover:text-emerald-300 transition-colors flex items-center justify-between">
-                  <span>Agriculture</span>
-                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-emerald-400" />
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Crop growth phenology, soil saturation, and vegetation biomass variation via NISAR L3 SME2.
+                <p className="text-xs text-slate-400 font-sans leading-relaxed line-clamp-2">
+                  {SATELLITE_PANELS[0].description}
                 </p>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                  <span>San Joaquin Valley</span>
-                  <span className="text-emerald-400">Launch &rarr;</span>
+              </div>
+            </div>
+
+            {/* Secondary Overlapping Floating Satellite Panel: San Andreas Fault */}
+            <div
+              onClick={() => onLaunchMonitor('san_andreas_def')}
+              className="absolute -bottom-6 -left-6 sm:-left-10 w-[240px] sm:w-[280px] rounded-[18px] overflow-hidden border border-royal-400/40 bg-black/95 shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-30 transition-all duration-500 hover:scale-105 hover:border-yellow group cursor-pointer animate-float-reverse hidden sm:block"
+              style={{
+                transform: `translate3d(${mouseOffset.x * 1.4}px, ${mouseOffset.y * 1.4}px, 0)`,
+              }}
+            >
+              <div className="aspect-[16/10] w-full overflow-hidden relative">
+                <img
+                  src={SATELLITE_PANELS[1].src}
+                  alt={SATELLITE_PANELS[1].title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                <div className="absolute top-2.5 left-2.5 bg-yellow text-black font-mono text-[9px] font-bold px-2 py-0.5 rounded-full">
+                  CALIFORNIA
+                </div>
+              </div>
+              <div className="p-3 bg-black/95 border-t border-white/10">
+                <div className="font-anton text-xs text-white group-hover:text-yellow transition-colors">
+                  {SATELLITE_PANELS[1].title}
+                </div>
+                <div className="font-mono text-[10px] text-royal-400 mt-0.5">
+                  CRUSTAL STRAIN // InSAR
+                </div>
+              </div>
+            </div>
+
+            {/* Tertiary Floating Accent Tag: Jakobshavn Glacial Catchment */}
+            <div
+              onClick={() => onLaunchMonitor('jakobshavn_cryo')}
+              className="absolute -top-6 -right-4 sm:-right-8 bg-royal-700 text-white rounded-[14px] p-3 border border-white/20 shadow-xl z-10 hidden md:block cursor-pointer hover:border-yellow transition-all"
+              style={{
+                transform: `translate3d(${mouseOffset.x * -0.7}px, ${mouseOffset.y * -0.7}px, 0)`,
+              }}
+            >
+              <div className="font-mono text-[10px] text-yellow font-bold uppercase tracking-wider">
+                GREENLAND ICE STREAM
+              </div>
+              <div className="font-anton text-sm text-white mt-0.5">69.17&deg; N &bull; -50.05&deg; W</div>
+              <div className="text-[10px] text-slate-300 font-sans mt-0.5">Terminal flow: 45m / day</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Minimal Editorial Scroll Indicator */}
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs font-mono text-slate-500 gap-4">
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-yellow animate-ping" />
+            <span>RADAR PULSES ACTIVE ACROSS 12 MONITORED ORBITS</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-400 hover:text-yellow transition-colors">
+            <span>SCROLL TO DESCEND</span>
+            <ChevronDown className="w-4 h-4 animate-bounce text-yellow" />
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          THE FLOATING SATELLITE STAGE (INSPIRED BY AGRUMEA VIDEO)
+          ========================================================================= */}
+      <section className="py-20 border-t border-white/10 relative overflow-hidden bg-gradient-to-b from-black via-royal-950/40 to-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 mb-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
+                GEOSPATIAL ARCHIVE // HORIZONTAL ORBITAL STREAM
+              </div>
+              <h2 className="font-anton text-4xl sm:text-6xl text-white tracking-tight leading-none">
+                BRAHMAPUTRA &amp; MONITORED DOMAINS
+              </h2>
+            </div>
+            <p className="font-mono text-xs text-slate-400 max-w-sm">
+              Hover and glide your cursor horizontally across the floating stage to pan through active radar observation canisters.
+            </p>
+          </div>
+        </div>
+
+        {/* 3D Floating Glide Stage with Rotating Central Emblem */}
+        <FloatingGeospatialStage onSelectRegion={onLaunchMonitor} />
+      </section>
+
+      {/* =========================================================================
+          CHAPTER 02 — OUR PLANET (EXPANSIVE PHOTOGRAPHIC DIVERSITY & ASYMMETRY)
+          ========================================================================= */}
+      <section id="planet" className="py-28 border-t border-white/10 relative bg-royal-950/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
+          {/* Chapter Lead Header */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+            <div className="lg:col-span-8 space-y-3">
+              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
+                CHAPTER 02 // GEOGRAPHICAL MOSAIC
+              </div>
+              <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
+                A LIVING, RESTLESS <br />
+                <span className="text-yellow">PLANETARY CRUST.</span>
+              </h2>
+            </div>
+            <div className="lg:col-span-4 font-sans text-sm text-slate-300 leading-relaxed">
+              From the glacial tongues of Greenland to the subterranean water tables of California&rsquo;s Central Valley, Earth operates in perpetual physical transformation.
+            </div>
+          </div>
+
+          {/* Unconventional Full-Width & Staggered Photographic Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
+            {/* Large Card 1: Himalayas High Glacier */}
+            <div className="md:col-span-7 rounded-[22px] overflow-hidden border border-white/15 bg-black group relative">
+              <div className="aspect-[16/10] overflow-hidden relative">
+                <img
+                  src={SATELLITE_PANELS[2].src}
+                  alt={SATELLITE_PANELS[2].title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                <div className="absolute top-5 left-5 bg-yellow text-black font-mono text-xs font-bold px-3 py-1 rounded-full">
+                  27.98&deg; N // HIMALAYAS
+                </div>
+              </div>
+              <div className="p-6 sm:p-8 space-y-2 bg-black border-t border-white/10">
+                <div className="flex justify-between items-baseline">
+                  <h3 className="font-anton text-2xl sm:text-3xl text-white group-hover:text-yellow transition-colors">
+                    HIMALAYAN GLACIAL MORAINE
+                  </h3>
+                  <span className="font-mono text-xs text-royal-400">ALT: 8,848M</span>
+                </div>
+                <p className="text-sm text-slate-300 leading-relaxed font-sans">
+                  L-band microwave pulses penetrate supraglacial snowpacks and moraine debris, tracking ice-dammed lake outbursts and seasonal discharge boundaries.
+                </p>
+              </div>
+            </div>
+
+            {/* Asymmetrical Right Column: Amazon River Basin & Sahara */}
+            <div className="md:col-span-5 space-y-6 sm:space-y-8">
+              {/* Card 2: Amazon Basin */}
+              <div className="rounded-[20px] overflow-hidden border border-white/15 bg-black group">
+                <div className="aspect-[4/3] overflow-hidden relative">
+                  <img
+                    src={SATELLITE_PANELS[3].src}
+                    alt={SATELLITE_PANELS[3].title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                  <div className="absolute top-4 left-4 bg-royal-600 text-white font-mono text-[11px] px-3 py-1 rounded-full">
+                    AMAZON CANOPY
+                  </div>
+                </div>
+                <div className="p-5 space-y-1 bg-black border-t border-white/10">
+                  <div className="font-anton text-xl text-white group-hover:text-yellow transition-colors">
+                    AMAZONIAN FLOODPLAIN
+                  </div>
+                  <p className="text-xs text-slate-400 font-sans leading-relaxed">
+                    24 cm microwave wavelengths penetrate dense tropical canopies to image floodwaters concealed beneath tree cover.
+                  </p>
                 </div>
               </div>
 
-              {/* Domain 3: Cryosphere */}
-              <div 
-                onClick={() => onLaunchMonitor('jakobshavn_cryo')}
-                className="p-5 rounded-2xl bg-white/[0.03] border border-cyan-500/40 hover:border-cyan-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-cyan-950/40"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
-                    <Mountain className="w-5 h-5 text-cyan-400" />
+              {/* Card 3: Eye of the Sahara */}
+              <div className="rounded-[20px] overflow-hidden border border-white/15 bg-black group">
+                <div className="aspect-[16/9] overflow-hidden relative">
+                  <img
+                    src={SATELLITE_PANELS[5].src}
+                    alt={SATELLITE_PANELS[5].title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                  <div className="absolute top-4 left-4 bg-yellow text-black font-mono text-[11px] font-bold px-3 py-1 rounded-full">
+                    RICHAT DOME // SAHARA
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                    ACTIVE
-                  </span>
                 </div>
-                <h4 className="text-base font-semibold text-white group-hover:text-cyan-300 transition-colors flex items-center justify-between">
-                  <span>Cryosphere</span>
-                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-cyan-400" />
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Glacial terminus retreat, ice sheet velocity flow, and seasonal melt tracked via polarimetric SAR.
-                </p>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                  <span>Jakobshavn Isbræ</span>
-                  <span className="text-cyan-400">Launch &rarr;</span>
-                </div>
-              </div>
-
-              {/* Domain 4: Deformation */}
-              <div 
-                onClick={() => onLaunchMonitor('san_andreas_def')}
-                className="p-5 rounded-2xl bg-white/[0.03] border border-purple-500/40 hover:border-purple-400 relative overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:scale-[1.02] shadow-lg hover:shadow-purple-950/40"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/20 transition-colors">
-                    <Zap className="w-5 h-5 text-purple-400" />
+                <div className="p-5 space-y-1 bg-black border-t border-white/10">
+                  <div className="font-anton text-xl text-white group-hover:text-yellow transition-colors">
+                    STRUCTURAL GEOLOGY
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-400/10 text-purple-400 border border-purple-400/30 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
-                    ACTIVE
-                  </span>
-                </div>
-                <h4 className="text-base font-semibold text-white group-hover:text-purple-300 transition-colors flex items-center justify-between">
-                  <span>Deformation</span>
-                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-purple-400" />
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Interferometric phase correlation for seismic fault creep and subsidence via NISAR L2 GUNW.
-                </p>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                  <span>San Andreas Fault</span>
-                  <span className="text-purple-400">Launch &rarr;</span>
+                  <p className="text-xs text-slate-400 font-sans leading-relaxed">
+                    Hyper-arid concentric sedimentary cuestas revealing billions of years of crustal exhumation.
+                  </p>
                 </div>
               </div>
             </div>
@@ -422,132 +431,484 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchMonitor }) => 
         </div>
       </section>
 
-      {/* CONTACT & TEAM SECTION */}
-      <section id="contact" className="py-24 border-t border-white/5 relative bg-gradient-to-b from-black to-slate-950/60 scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-electric-500/10 border border-electric-500/20 text-electric-400 text-xs font-mono uppercase tracking-wider mb-4">
-              Get in Touch &bull; Project Team
+      {/* =========================================================================
+          CHAPTER 03 — OBSERVE THE CHANGE (INTERACTIVE MULTI-TEMPORAL RADAR SLIDER)
+          ========================================================================= */}
+      <section id="dynamics" className="py-28 border-t border-white/10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-14">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
+                CHAPTER 03 // QUANTITATIVE DYNAMICS
+              </div>
+              <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
+                SEEING CHANGE <br />
+                <span className="text-royal-400">IN BACKSCATTER DECIBELS.</span>
+              </h2>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
-              Connect With Us
-            </h2>
-            <p className="text-sm text-slate-400 mt-3 leading-relaxed">
-              NASA Space Apps Challenge 2026 — <em>Dancing with the SARs</em>. Reach out to the core engineering and research team behind TerraScan.
+            <div className="font-mono text-xs text-slate-400 max-w-xs">
+              Drag the interactive slider below to inspect pre-event baseline radar amplitude against post-inundation specular attenuation.
+            </div>
+          </div>
+
+          {/* Interactive Multi-Temporal Comparator Box with Soft Rounded Corners */}
+          <div className="rounded-[22px] overflow-hidden border border-white/20 bg-royal-950/40 relative shadow-2xl">
+            {/* Top Toolbar */}
+            <div className="p-4 sm:p-6 bg-black/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 rounded-full bg-yellow text-black font-bold">
+                  TESTBED: BRAHMAPUTRA
+                </span>
+                <span className="text-slate-300">NISAR L-BAND DUAL-POL (HH/HV)</span>
+              </div>
+              <div className="flex items-center gap-4 text-slate-400">
+                <div>
+                  <span className="text-slate-500">t₀ BASELINE:</span> 2026-05-12
+                </div>
+                <div>
+                  <span className="text-yellow">t₁ EVENT:</span> 2026-06-24
+                </div>
+                <div className="text-royal-400 font-bold">&Delta;&sigma;&deg; &lt; -6.0 dB</div>
+              </div>
+            </div>
+
+            {/* Slider Comparison Visual Canvas */}
+            <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden select-none bg-black">
+              {/* After Image Layer (Event Scene with flood boundaries) */}
+              <div className="absolute inset-0">
+                <img
+                  src={SATELLITE_PANELS[0].src}
+                  alt="Post-event Inundated Scene"
+                  className="w-full h-full object-cover filter contrast-125 saturate-150 hue-rotate-15"
+                />
+                <div className="absolute inset-0 bg-royal-600/25 mix-blend-color" />
+                <div className="absolute top-6 right-6 bg-yellow text-black font-mono text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                  POST-EVENT (t₁): INUNDATED
+                </div>
+              </div>
+
+              {/* Before Image Layer (Clipped by slider position) */}
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ width: `${sliderPosition}%` }}
+              >
+                <img
+                  src={SATELLITE_PANELS[1].src}
+                  alt="Pre-event Dry Baseline Scene"
+                  className="w-full h-full object-cover max-w-none"
+                  style={{ width: '100vw' }}
+                />
+                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute top-6 left-6 bg-white/90 text-black font-mono text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                  PRE-EVENT (t₀): DRY BASELINE
+                </div>
+              </div>
+
+              {/* Center Divider Bar */}
+              <div
+                className="absolute top-0 bottom-0 w-1 bg-yellow shadow-[0_0_15px_#FFE500] cursor-ew-resize flex items-center justify-center"
+                style={{ left: `${sliderPosition}%` }}
+              >
+                <div className="w-8 h-8 rounded-full bg-yellow text-black flex items-center justify-center font-bold text-xs shadow-2xl">
+                  &harr;
+                </div>
+              </div>
+
+              {/* Native range input overlay for intuitive dragging */}
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={sliderPosition}
+                onChange={(e) => setSliderPosition(Number(e.target.value))}
+                className="absolute inset-0 opacity-0 cursor-ew-resize w-full h-full z-30"
+                aria-label="Multi-temporal radar slider"
+              />
+            </div>
+
+            {/* Bottom Analysis Metrics Strip */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-black/90 border-t border-white/10 font-mono">
+              <div className="space-y-1">
+                <div className="text-[10px] text-slate-500 uppercase">SURFACE CHANGE TYPE</div>
+                <div className="font-anton text-xl text-yellow">SPECULAR FLOODING</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-[10px] text-slate-500 uppercase">ESTIMATED EXTENT</div>
+                <div className="font-anton text-xl text-white">38.4 KM&sup2;</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-[10px] text-slate-500 uppercase">AMPLITUDE DELTA</div>
+                <div className="font-anton text-xl text-royal-400">-7.50 dB</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-[10px] text-slate-500 uppercase">CLASSIFICATION CONFIDENCE</div>
+                <div className="font-anton text-xl text-yellow">99.4% (HIGH)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          CHAPTER 04 — REGIONS OF INTEREST (EDITORIAL GALLERY WITH DIRECT LAUNCH)
+          ========================================================================= */}
+      <section id="regions" className="py-28 border-t border-white/10 bg-royal-950/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-8">
+            <div className="space-y-2">
+              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
+                CHAPTER 04 // OPERATIONAL DOMAINS
+              </div>
+              <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
+                TARGET REGIONS <br />
+                <span className="text-yellow">READY FOR INSPECTION.</span>
+              </h2>
+            </div>
+            <p className="font-sans text-sm text-slate-300 max-w-md">
+              Select any monitored geographical domain to transition directly into the live radar analysis workspace.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {/* Team Leader Card */}
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-electric-500/40 relative overflow-hidden group hover:border-electric-500/70 transition-all flex flex-col justify-between shadow-lg shadow-electric-950/20">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-electric-500/10 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none"></div>
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-electric-500/20 text-electric-300 border border-electric-500/40 font-semibold">
+          {/* 4 Primary Domain Cards (Grid Layout with Yellow/Royal Blue Interaction) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Domain 1: Brahmaputra River Corridor */}
+            <div
+              onClick={() => onLaunchMonitor('brahmaputra')}
+              className="p-6 rounded-[20px] bg-black border border-white/15 hover:border-yellow transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:scale-[1.02] shadow-xl"
+            >
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="w-12 h-12 rounded-xl bg-royal-600/30 border border-royal-500 text-yellow flex items-center justify-center">
+                    <Waves className="w-6 h-6" />
+                  </div>
+                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-yellow text-black font-bold">
+                    ACTIVE
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-anton text-2xl text-white group-hover:text-yellow transition-colors">
+                    BRAHMAPUTRA
+                  </h3>
+                  <div className="font-mono text-xs text-slate-400 mt-1">Assam, India &bull; Flooding</div>
+                </div>
+                <p className="font-sans text-xs text-slate-300 leading-relaxed">
+                  Monsoonal river overflow and surface water displacement mapped via NISAR L2 GCOV covariance matrices.
+                </p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/10 flex justify-between items-center font-mono text-xs text-yellow">
+                <span>INSPECT REGION</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </div>
+
+            {/* Domain 2: San Andreas Fault Zone */}
+            <div
+              onClick={() => onLaunchMonitor('san_andreas_def')}
+              className="p-6 rounded-[20px] bg-black border border-white/15 hover:border-yellow transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:scale-[1.02] shadow-xl"
+            >
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="w-12 h-12 rounded-xl bg-royal-600/30 border border-royal-500 text-yellow flex items-center justify-center">
+                    <Zap className="w-6 h-6" />
+                  </div>
+                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-yellow text-black font-bold">
+                    ACTIVE
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-anton text-2xl text-white group-hover:text-yellow transition-colors">
+                    SAN ANDREAS
+                  </h3>
+                  <div className="font-mono text-xs text-slate-400 mt-1">California, USA &bull; Strain</div>
+                </div>
+                <p className="font-sans text-xs text-slate-300 leading-relaxed">
+                  Sub-centimeter interferometric phase coherence tracking along active strike-slip crustal faults.
+                </p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/10 flex justify-between items-center font-mono text-xs text-yellow">
+                <span>INSPECT REGION</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </div>
+
+            {/* Domain 3: Jakobshavn Glacial Catchment */}
+            <div
+              onClick={() => onLaunchMonitor('jakobshavn_cryo')}
+              className="p-6 rounded-[20px] bg-black border border-white/15 hover:border-yellow transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:scale-[1.02] shadow-xl"
+            >
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="w-12 h-12 rounded-xl bg-royal-600/30 border border-royal-500 text-yellow flex items-center justify-center">
+                    <Mountain className="w-6 h-6" />
+                  </div>
+                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-yellow text-black font-bold">
+                    ACTIVE
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-anton text-2xl text-white group-hover:text-yellow transition-colors">
+                    JAKOBSHAVN
+                  </h3>
+                  <div className="font-mono text-xs text-slate-400 mt-1">Greenland &bull; Ice Flow</div>
+                </div>
+                <p className="font-sans text-xs text-slate-300 leading-relaxed">
+                  Terminal ice discharge velocities and calving dynamics tracked across 12-day orbital intervals.
+                </p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/10 flex justify-between items-center font-mono text-xs text-yellow">
+                <span>INSPECT REGION</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </div>
+
+            {/* Domain 4: San Joaquin Agricultural Zone */}
+            <div
+              onClick={() => onLaunchMonitor('central_valley_ag')}
+              className="p-6 rounded-[20px] bg-black border border-white/15 hover:border-yellow transition-all duration-300 flex flex-col justify-between group cursor-pointer hover:scale-[1.02] shadow-xl"
+            >
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="w-12 h-12 rounded-xl bg-royal-600/30 border border-royal-500 text-yellow flex items-center justify-center">
+                    <Sprout className="w-6 h-6" />
+                  </div>
+                  <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-yellow text-black font-bold">
+                    ACTIVE
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-anton text-2xl text-white group-hover:text-yellow transition-colors">
+                    CENTRAL VALLEY
+                  </h3>
+                  <div className="font-mono text-xs text-slate-400 mt-1">California &bull; Soil Moisture</div>
+                </div>
+                <p className="font-sans text-xs text-slate-300 leading-relaxed">
+                  Dielectric permittivity shifts in topsoil and crop biomass variation detected through radar attenuation.
+                </p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/10 flex justify-between items-center font-mono text-xs text-yellow">
+                <span>INSPECT REGION</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          CHAPTER 05 — THE TECHNOLOGY (SWISS TYPOGRAPHY & DETERMINISTIC RADAR PIPELINE)
+          ========================================================================= */}
+      <section id="technology" className="py-28 border-t border-white/10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+            <div className="lg:col-span-8 space-y-3">
+              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
+                CHAPTER 05 // PHYSICAL METHODOLOGY
+              </div>
+              <h2 className="font-anton text-5xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
+                MICROWAVE PHYSICS. <br />
+                <span className="text-yellow">ZERO HALLUCINATIONS.</span>
+              </h2>
+            </div>
+            <div className="lg:col-span-4 font-sans text-sm text-slate-300 leading-relaxed">
+              TerraScan abandons black-box approximations. Our engine relies strictly on rigorous radiometric calibration, log-ratio backscatter thresholding, and polygonized topology.
+            </div>
+          </div>
+
+          {/* 5-Stage Deterministic Pipeline */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="p-6 rounded-[18px] bg-royal-950/60 border border-white/10 hover:border-yellow transition-all space-y-3">
+              <div className="font-anton text-3xl text-yellow">01</div>
+              <h3 className="font-anton text-lg text-white">ORBITAL INGEST</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                Ingest repeat-pass NISAR L-band dual-pol (HH/HV) geocoded covariance (GCOV) matrices.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-[18px] bg-royal-950/60 border border-white/10 hover:border-yellow transition-all space-y-3">
+              <div className="font-anton text-3xl text-yellow">02</div>
+              <h3 className="font-anton text-lg text-white">CO-REGISTRATION</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                Sub-pixel alignment of baseline t₀ and event t₁ radar scenes with orbital ephemeris correction.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-[18px] bg-royal-950/60 border border-white/10 hover:border-yellow transition-all space-y-3">
+              <div className="font-anton text-3xl text-yellow">03</div>
+              <h3 className="font-anton text-lg text-white">DECIBEL RATIO</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                Computation of logarithmic backscatter differences: &Delta;&sigma;&deg; = 10 log₁₀(t₁ / t₀).
+              </p>
+            </div>
+
+            <div className="p-6 rounded-[18px] bg-royal-950/60 border border-white/10 hover:border-yellow transition-all space-y-3">
+              <div className="font-anton text-3xl text-yellow">04</div>
+              <h3 className="font-anton text-lg text-white">POLYGONIZATION</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                Connected-component clustering and topological GeoJSON boundary extraction.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-[18px] bg-royal-950/60 border border-white/10 hover:border-yellow transition-all space-y-3">
+              <div className="font-anton text-3xl text-yellow">05</div>
+              <h3 className="font-anton text-lg text-white">DECISION SUPPORT</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                Transparent physical statistics formatted directly for civil protection and emergency responders.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          CHAPTER 06 — FINAL EXPERIENCE & PROJECT TEAM
+          ========================================================================= */}
+      <section id="contact" className="py-28 border-t border-white/10 relative bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-20">
+          {/* Monumental Call to Action */}
+          <div className="p-8 sm:p-14 rounded-[28px] bg-royal-600 text-white relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="space-y-4 max-w-2xl z-10">
+              <div className="font-mono text-xs uppercase tracking-widest text-yellow font-bold">
+                CHAPTER 06 // EMBARK INTO ORBIT
+              </div>
+              <h2 className="font-anton text-4xl sm:text-6xl md:text-7xl text-white tracking-tight leading-none">
+                STEP INTO THE RADAR STREAM.
+              </h2>
+              <p className="text-slate-200 text-sm sm:text-base font-sans">
+                Experience real multi-temporal Earth observation radar analytics without paywalls or proprietary vendor lock-in.
+              </p>
+            </div>
+
+            <button
+              onClick={() => onLaunchMonitor()}
+              className="z-10 px-10 py-5 rounded-full bg-yellow hover:bg-yellow-300 text-black font-anton text-lg sm:text-xl tracking-wider shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 shrink-0"
+            >
+              LAUNCH MONITOR &rarr;
+            </button>
+
+            {/* Background Texture Accents */}
+            <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-yellow/10 rounded-full blur-3xl pointer-events-none" />
+          </div>
+
+          {/* Project Team & NASA Space Apps Citation */}
+          <div className="space-y-10">
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <div className="font-mono text-xs text-yellow tracking-widest uppercase">
+                CREATIVE &amp; SCIENTIFIC TEAM
+              </div>
+              <h3 className="font-anton text-3xl sm:text-4xl text-white tracking-tight">
+                WHO BUILT TERRASCAN
+              </h3>
+              <p className="font-mono text-xs text-slate-400">
+                NASA Space Apps Challenge 2026 &bull; Global Hackathon &bull; Dancing with the SARs
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Leader */}
+              <div className="p-6 rounded-[20px] bg-royal-950/60 border border-yellow/40 hover:border-yellow transition-all flex flex-col justify-between">
+                <div>
+                  <span className="font-mono text-[10px] text-yellow font-bold px-2 py-0.5 rounded-full bg-yellow/15 border border-yellow/30">
                     TEAM LEADER
                   </span>
+                  <h4 className="font-anton text-xl text-white mt-3">INZMAM</h4>
+                  <p className="text-xs text-slate-300 font-sans mt-0.5">
+                    Lead Architecture &amp; Engineering
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-white tracking-tight">Inzmam</h3>
-                <p className="text-xs text-slate-400 mt-1">Lead Architecture &amp; Engineering</p>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <a
+                    href="mailto:modh.inzmam007@gmail.com"
+                    className="font-mono text-xs text-yellow hover:underline flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>modh.inzmam007@gmail.com</span>
+                  </a>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <a
-                  href="mailto:modh.inzmam007@gmail.com"
-                  className="text-xs font-mono text-electric-400 hover:text-electric-300 break-all transition-colors flex items-center gap-1.5"
-                >
-                  <Mail className="w-3.5 h-3.5 shrink-0" />
-                  <span>modh.inzmam007@gmail.com</span>
-                </a>
-              </div>
-            </div>
 
-            {/* Member 1: Anshuman */}
-            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
-                    TEAM MEMBER
+              {/* Anshuman */}
+              <div className="p-6 rounded-[20px] bg-royal-950/60 border border-white/15 hover:border-yellow transition-all flex flex-col justify-between">
+                <div>
+                  <span className="font-mono text-[10px] text-slate-300 font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                    CORE MEMBER
                   </span>
+                  <h4 className="font-anton text-xl text-white mt-3">ANSHUMAN</h4>
+                  <p className="text-xs text-slate-300 font-sans mt-0.5">
+                    Radar Analytics &amp; Pipeline
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-white tracking-tight">Anshuman</h3>
-                <p className="text-xs text-slate-400 mt-1">Radar Analytics &amp; Pipeline</p>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <a
+                    href="mailto:iganshumanig@gmail.com"
+                    className="font-mono text-xs text-slate-300 hover:text-yellow transition-colors flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>iganshumanig@gmail.com</span>
+                  </a>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <a
-                  href="mailto:iganshumanig@gmail.com"
-                  className="text-xs font-mono text-slate-300 group-hover:text-acid-400 break-all transition-colors flex items-center gap-1.5"
-                >
-                  <Mail className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-acid-400" />
-                  <span>iganshumanig@gmail.com</span>
-                </a>
-              </div>
-            </div>
 
-            {/* Member 2: Dhanistha Nanda */}
-            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
-                    TEAM MEMBER
+              {/* Dhanistha */}
+              <div className="p-6 rounded-[20px] bg-royal-950/60 border border-white/15 hover:border-yellow transition-all flex flex-col justify-between">
+                <div>
+                  <span className="font-mono text-[10px] text-slate-300 font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                    CORE MEMBER
                   </span>
+                  <h4 className="font-anton text-xl text-white mt-3">DHANISTHA NANDA</h4>
+                  <p className="text-xs text-slate-300 font-sans mt-0.5">
+                    Research &amp; SAR Applications
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-white tracking-tight">Dhanistha Nanda</h3>
-                <p className="text-xs text-slate-400 mt-1">Research &amp; SAR Applications</p>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <a
+                    href="mailto:dhanistha.nanda@gmail.com"
+                    className="font-mono text-xs text-slate-300 hover:text-yellow transition-colors flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>dhanistha.nanda@gmail.com</span>
+                  </a>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <a
-                  href="mailto:dhanistha.nanda@gmail.com"
-                  className="text-xs font-mono text-slate-300 group-hover:text-acid-400 break-all transition-colors flex items-center gap-1.5"
-                >
-                  <Mail className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-acid-400" />
-                  <span>dhanistha.nanda@gmail.com</span>
-                </a>
-              </div>
-            </div>
 
-            {/* Member 3: Anishka Yadav */}
-            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
-                    TEAM MEMBER
+              {/* Anishka */}
+              <div className="p-6 rounded-[20px] bg-royal-950/60 border border-white/15 hover:border-yellow transition-all flex flex-col justify-between">
+                <div>
+                  <span className="font-mono text-[10px] text-slate-300 font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                    CORE MEMBER
                   </span>
+                  <h4 className="font-anton text-xl text-white mt-3">ANISHKA YADAV</h4>
+                  <p className="text-xs text-slate-300 font-sans mt-0.5">
+                    Geospatial UI &amp; Data Integration
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-white tracking-tight">Anishka Yadav</h3>
-                <p className="text-xs text-slate-400 mt-1">Geospatial UI &amp; Data Integration</p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <a
-                  href="mailto:anishkayadav2808@gmail.com"
-                  className="text-xs font-mono text-slate-300 group-hover:text-acid-400 break-all transition-colors flex items-center gap-1.5"
-                >
-                  <Mail className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-acid-400" />
-                  <span>anishkayadav2808@gmail.com</span>
-                </a>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <a
+                    href="mailto:anishkayadav2808@gmail.com"
+                    className="font-mono text-xs text-slate-300 hover:text-yellow transition-colors flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>anishkayadav2808@gmail.com</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Minimalist Editorial Footer */}
+          <footer className="pt-12 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 font-mono text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="font-anton text-sm text-white">TERRASCAN</span>
+              <span>&bull;</span>
+              <span>NASA &bull; ISRO &bull; ESA &bull; CSA &bull; CONAE</span>
+            </div>
+            <div>DETERMINISTIC EARTH OBSERVATION // ZERO BLACK BOXES</div>
+          </footer>
         </div>
       </section>
-
-      {/* FOOTER (Minimalist, human-built aesthetic) */}
-      <footer className="py-12 border-t border-white/10 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-slate-400">
-              <span className="font-semibold text-white">TerraScan</span>
-              <span>&bull;</span>
-              <span>NASA Space Apps Challenge 2026 &bull; Dancing with the SARs</span>
-            </div>
-
-            <div className="flex items-center gap-6 text-slate-400">
-              <span>Free Local Stack</span>
-              <span>No Paid APIs</span>
-              <span>100% Deterministic Engine</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
