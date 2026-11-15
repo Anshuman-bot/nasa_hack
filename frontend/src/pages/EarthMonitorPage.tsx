@@ -49,6 +49,17 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
     setSelectedLocation(newLocId);
     const loc = MONITORED_LOCATIONS.find((l) => l.id === newLocId);
     if (loc) {
+      // Auto-switch analysis mode to match domain if selecting a specialized testbed
+      let targetMode = analysisMode;
+      if (newLocId === 'central_valley_ag') targetMode = 'agriculture';
+      else if (newLocId === 'jakobshavn_cryo') targetMode = 'cryosphere';
+      else if (newLocId === 'san_andreas_def') targetMode = 'deformation';
+      else if (newLocId === 'brahmaputra' || newLocId === 'mississippi') targetMode = 'flood';
+
+      if (targetMode !== analysisMode) {
+        setAnalysisMode(targetMode);
+      }
+
       setCurrentAnalysis((prev) => ({
         ...prev,
         location: loc.name,
@@ -56,6 +67,16 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
         centerCoordinates: loc.coordinates,
         zoomLevel: loc.defaultZoom,
       }));
+
+      // Immediately trigger analysis refresh so data updates without needing a manual click
+      runAnalysis({
+        location: newLocId,
+        beforeDate,
+        afterDate,
+        analysisMode: targetMode,
+      })
+        .then((res) => setCurrentAnalysis(res.data))
+        .catch((err) => console.warn('Location switch auto-fetch failed:', err));
     }
   };
 
