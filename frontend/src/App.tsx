@@ -18,6 +18,12 @@ export const App: React.FC = () => {
   const handleLaunchDomain = (locationId: string) => {
     setInitialLocation(locationId);
     setCurrentPage('monitor');
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
+
+  const handleNavigate = (page: 'landing' | 'monitor') => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 
   useEffect(() => {
@@ -56,7 +62,7 @@ export const App: React.FC = () => {
       {/* Primary Unconventional Navigation */}
       <Navbar
         currentPage={currentPage}
-        onNavigate={setCurrentPage}
+        onNavigate={handleNavigate}
         isBackendConnected={isBackendConnected}
       />
 

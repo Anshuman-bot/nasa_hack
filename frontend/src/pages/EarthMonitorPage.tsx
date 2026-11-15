@@ -39,8 +39,9 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
     detectedChange: true,
   });
 
-  // Run initial analysis on mount or whenever initialLocation changes from Landing Page selection
+  // Scroll to top immediately on mount and run initial analysis
   React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (initialLocation) {
       handleLocationChange(initialLocation);
     }
