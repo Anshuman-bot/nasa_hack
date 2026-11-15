@@ -1,7 +1,18 @@
 import { AnalysisRequest, AnalysisResult } from '../types/analysis';
 import { DEFAULT_ANALYSIS_RESULT, MOCK_ANALYSIS_DATABASE } from '../data/mockAnalysisData';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const getBackendUrl = (): string => {
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
+  // If accessing from phone or another device on LAN, point to current host's IP on port 8000
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    return `http://${window.location.hostname}:8000`;
+  }
+  return 'http://localhost:8000';
+};
+
+const BACKEND_URL = getBackendUrl();
 const LIVE_ONLY = new Set(['nisar_local', 'synthetic_test']);
 
 export interface HealthCheckResponse {
