@@ -30,12 +30,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-[1200] px-4 sm:px-8 py-4 sm:py-6 pointer-events-none">
-        <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
+      {/* Full-width solid black background strip across entire top */}
+      <header className="fixed top-0 left-0 right-0 z-[1200] h-20 bg-black border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.85)] transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-full flex items-center justify-between">
           {/* Brand Mark in Anton Typography */}
           <div
             onClick={() => onNavigate('landing')}
-            className="flex items-center gap-3 cursor-pointer group bg-black/80 backdrop-blur-xl border border-white/10 hover:border-yellow/50 px-4 py-2 rounded-full transition-all duration-300"
+            className="flex items-center gap-3 cursor-pointer group bg-black border border-white/10 hover:border-yellow/50 px-4 py-2 rounded-full transition-all duration-300"
           >
             <div className="w-3 h-3 rounded-full bg-yellow shadow-[0_0_10px_#FFE500] group-hover:scale-125 transition-transform" />
             <span className="font-anton text-xl sm:text-2xl text-white tracking-wide group-hover:text-yellow transition-colors">
@@ -47,38 +48,47 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Center Editorial Navigation Pills */}
-          <nav className="hidden lg:flex items-center gap-1 bg-black/85 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-full shadow-2xl">
-            <button
-              onClick={() => scrollToChapter('hero')}
-              className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
-            >
-              01 // EXPLORE
-            </button>
-            <button
-              onClick={() => scrollToChapter('planet')}
-              className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
-            >
-              02 // PLANET
-            </button>
-            <button
-              onClick={() => scrollToChapter('regions')}
-              className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
-            >
-              03 // REGIONS
-            </button>
-            <button
-              onClick={() => scrollToChapter('technology')}
-              className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
-            >
-              04 // RADAR
-            </button>
-            <button
-              onClick={() => scrollToChapter('contact')}
-              className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
-            >
-              05 // TEAM
-            </button>
-          </nav>
+          {currentPage === 'landing' ? (
+            <nav className="hidden lg:flex items-center gap-1 bg-black border border-white/10 px-3 py-1.5 rounded-full shadow-2xl">
+              <button
+                onClick={() => scrollToChapter('hero')}
+                className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
+              >
+                01 // EXPLORE
+              </button>
+              <button
+                onClick={() => scrollToChapter('planet')}
+                className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
+              >
+                02 // PLANET
+              </button>
+              <button
+                onClick={() => scrollToChapter('regions')}
+                className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
+              >
+                03 // REGIONS
+              </button>
+              <button
+                onClick={() => scrollToChapter('technology')}
+                className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
+              >
+                04 // RADAR
+              </button>
+              <button
+                onClick={() => scrollToChapter('contact')}
+                className="px-3.5 py-1.5 rounded-full font-mono text-xs text-slate-300 hover:text-black hover:bg-yellow transition-all"
+              >
+                05 // TEAM
+              </button>
+            </nav>
+          ) : (
+            <div className="hidden lg:flex items-center gap-3 font-mono text-xs bg-black border border-white/10 px-4 py-1.5 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-yellow animate-pulse" />
+              <span className="text-white font-bold tracking-wider">EARTH MONITOR WORKSPACE</span>
+              <span className="text-slate-600">&bull;</span>
+              <span className="text-royal-400">NISAR TESTBED ACTIVE</span>
+            </div>
+          )}
 
           {/* Right Controls: Telemetry Beacon + Launch Monitor CTA */}
           <div className="flex items-center gap-2.5 sm:gap-3">
@@ -89,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'FastAPI backend connected (NASA CMR active)'
                   : 'Operating in deterministic local mode'
               }
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/80 backdrop-blur-xl border border-white/10 font-mono text-[11px]"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black border border-white/10 font-mono text-[11px]"
             >
               <Radio
                 className={`w-3.5 h-3.5 ${
@@ -104,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Launch Earth Monitor Button */}
             <button
               onClick={() => onNavigate(currentPage === 'landing' ? 'monitor' : 'landing')}
-              className={`px-5 py-2 sm:px-6 sm:py-2.5 rounded-full font-anton tracking-wider text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 shadow-xl ${
+              className={`px-5 py-2 sm:px-6 sm:py-2 rounded-full font-anton tracking-wider text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 shadow-xl ${
                 currentPage === 'monitor'
                   ? 'bg-yellow text-black hover:bg-yellow-300 shadow-[0_0_20px_rgba(255,229,0,0.4)]'
                   : 'bg-royal-600 hover:bg-royal-500 text-white hover:shadow-[0_0_25px_rgba(23,73,216,0.6)]'
@@ -117,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-full bg-black/80 backdrop-blur-xl border border-white/10 text-white hover:text-yellow transition-colors"
+              className="lg:hidden p-2 rounded-full bg-black border border-white/10 text-white hover:text-yellow transition-colors"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
