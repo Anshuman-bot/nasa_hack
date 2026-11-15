@@ -29,6 +29,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {
+        "status": "operational",
+        "message": "TerraScan NISAR SAR Processing Backend is Live",
+        "docs": "/docs",
+        "health": "/health",
+        "radarMission": "NASA-ISRO Synthetic Aperture Radar (NISAR)"
+    }
+
 app.include_router(router)
 app.include_router(satellite_router)
 
