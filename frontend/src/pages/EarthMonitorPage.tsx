@@ -120,7 +120,7 @@ export const EarthMonitorPage: React.FC<EarthMonitorPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen pt-24 sm:pt-28 flex flex-col bg-black text-slate-100 font-sans">
+    <div className="min-h-screen flex flex-col bg-black text-slate-100 font-sans">
       {/* Top Filter & Trigger Controls Bar */}
       <AnalysisControls
         location={selectedLocation}
