@@ -3,41 +3,123 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-midnight-950 text-slate-100 font-sans;
+    @apply bg-black text-white font-sans;
     background-color: #000000;
-    color: #f1f5f9;
+    color: #ffffff;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background-color: #FFE500;
+    color: #000000;
   }
 }
 
-/* Subtle Starfield & Ambient Glow */
-.space-gradient-bg {
-  background: radial-gradient(circle at 85% 35%, rgba(37, 99, 235, 0.12) 0%, transparent 60%),
-              radial-gradient(circle at 15% 85%, rgba(163, 230, 53, 0.04) 0%, transparent 40%),
-              #000000;
+/* Custom cinematic easing and typography */
+.font-anton {
+  font-family: 'Anton', 'Impact', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Cinematic Royal Blue and Bright Yellow accents */
+.bg-royal-gradient {
+  background: radial-gradient(circle at 50% 30%, #1749D8 0%, #071D64 60%, #000000 100%);
+}
+
+.text-stroke-yellow {
+  -webkit-text-stroke: 1.5px #FFE500;
+  color: transparent;
+}
+
+.text-stroke-royal {
+  -webkit-text-stroke: 1.5px #1749D8;
+  color: transparent;
+}
+
+.text-stroke-white {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.4);
+  color: transparent;
+}
+
+/* Floating animation with soft physics */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0.8deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(14px) rotate(-1deg);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 7s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 8.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+}
+
+.animate-orbit-spin {
+  animation: orbit-spin 25s linear infinite;
 }
 
 /* Clean Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #03050a;
+  background: #000000;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1b253d;
+  background: #1749D8;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
+  background: #FFE500;
 }
 
 /* Dark Leaflet styling adjustments */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background: #03050a !important;
+  background: #000000 !important;
   font-family: inherit;
   z-index: 10 !important;
 }
@@ -48,20 +130,20 @@
 
 .leaflet-control-zoom a {
   background-color: #070b14 !important;
-  color: #60a5fa !important;
-  border-color: #1b253d !important;
+  color: #FFE500 !important;
+  border-color: #1749D8 !important;
   border-radius: 6px !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background-color: #0d1322 !important;
-  color: #a3e635 !important;
+  background-color: #1749D8 !important;
+  color: #000000 !important;
 }
 
 .leaflet-popup-content-wrapper {
   background: #070b14 !important;
-  color: #f1f5f9 !important;
-  border: 1px solid #1b253d !important;
+  color: #ffffff !important;
+  border: 1px solid #1749D8 !important;
   border-radius: 10px !important;
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8) !important;
 }
